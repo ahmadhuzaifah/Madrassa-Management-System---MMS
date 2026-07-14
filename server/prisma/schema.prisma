@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String                  @id @default(cuid())
+  name                 String
+  email                String                  @unique
+  passwordHash         String
+  role                 String                  @default("USER")
+  status               String                  @default("ACTIVE")
+  emailVerified        Boolean                 @default(false)
+  avatarUrl            String?
+  phone                String?
+  lastLoginAt          DateTime?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  settings             Setting?
+  subscriptions        Subscription[]
+  notifications        Notification[]
+  activityLogs         ActivityLog[]
+  files                FileUpload[]
+  resetTokens          PasswordResetToken[]
+  verificationTokens   EmailVerificationToken[]
+  @@index([email])
+}
+
+model Setting {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  theme                 String   @default("dark")
+  notificationsEnabled  Boolean  @default(true)
+  timezone              String   @default("UTC")
+  language              String   @default("en")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Plan {
+  id                String         @id @default(cuid())
+  name              String
+  slug              String         @unique
+  description       String
+  priceMonthly      Int
+  priceYearly       Int
+  trialDays         Int            @default(14)
+  maxUsers          Int            @default(5)
+  maxProjects       Int            @default(20)
+  storageLimitGb    Int            @default(100)
+  features          String
+  stripePriceId     String?
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  subscriptions     Subscription[]
+}
+
+model Subscription {
+  id                   String                @id @default(cuid())
+  userId               String
+  planId               String
+  status               String                 @default("TRIAL")
+  interval             String                 @default("MONTHLY")
+  currentPeriodStart   DateTime              @default(now())
+  currentPeriodEnd     DateTime
+  trialEndsAt          DateTime?
+  cancelAtPeriodEnd    Boolean               @default(false)
+  stripeSubscriptionId String?
+  lastInvoiceId        String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  user                 User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                 Plan                  @relation(fields: [planId], references: [id], onDelete: Restrict)
+  invoices             Invoice[]
+  @@index([userId])
+}
+
+model Invoice {
+  id              String        @id @default(cuid())
+  subscriptionId  String
+  amount          Int
+  currency        String        @default("usd")
+  status          String        @default("paid")
+  invoiceNumber   String
+  issuedAt        DateTime      @default(now())
+  pdfUrl          String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  subscription    Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  message     String
+  type        String   @default("info")
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, isRead])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    String?
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId, createdAt])
+}
+
+model FileUpload {
+  id            String   @id @default(cuid())
+  userId        String?
+  originalName  String
+  storedName    String
+  mimeType      String
+  sizeBytes     Int
+  path          String
+  createdAt     DateTime @default(now())
+  user          User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  userId      String
+  token       String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model EmailVerificationToken {
+  id          String    @id @default(cuid())
+  userId      String
+  token       String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

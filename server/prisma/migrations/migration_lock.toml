@@ -1,0 +1,2 @@
+# Do not edit manually. This file records the provider used by Prisma migrations.
+provider = "sqlite"

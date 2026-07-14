@@ -1,0 +1,14 @@
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.env
+**/.env
+*.db
+*.db-journal
+uploads/
+**/uploads/
+.vite/
+**/.vite/
+*.tsbuildinfo
+*.log
