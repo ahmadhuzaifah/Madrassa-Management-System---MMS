@@ -373,3 +373,111 @@ Returns audit log entries with optional filters.
 ### GET /api/admin/reports
 
 Returns admin reporting data for users, organizations, activity, and storage.
+
+## Madrassa
+
+All madrassa endpoints are workspace-scoped and require authentication.
+
+### GET /api/madrassa/profile
+
+Returns the madrassa profile for the current workspace.
+
+### PUT /api/madrassa/profile
+
+Creates or updates the madrassa profile.
+
+### GET /api/madrassa/branches
+
+Lists branches for the current madrassa.
+
+### POST /api/madrassa/branches
+
+Creates a branch.
+
+### PATCH /api/madrassa/branches/:id
+
+Updates a branch.
+
+### DELETE /api/madrassa/branches/:id
+
+Soft-deletes a branch.
+
+### GET /api/madrassa/academic-years
+
+Lists academic years.
+
+### POST /api/madrassa/academic-years
+
+Creates an academic year.
+
+### PATCH /api/madrassa/academic-years/:id
+
+Updates an academic year.
+
+### DELETE /api/madrassa/academic-years/:id
+
+Archives an academic year.
+
+### GET /api/madrassa/departments
+
+Lists departments.
+
+### POST /api/madrassa/departments
+
+Creates a department.
+
+### PATCH /api/madrassa/departments/:id
+
+Updates a department.
+
+### DELETE /api/madrassa/departments/:id
+
+Soft-deletes a department.
+
+### GET /api/madrassa/programs
+
+Lists programs.
+
+### POST /api/madrassa/programs
+
+Creates a program.
+
+### PATCH /api/madrassa/programs/:id
+
+Updates a program.
+
+### DELETE /api/madrassa/programs/:id
+
+Soft-deletes a program.
+
+### GET /api/madrassa/classes
+
+Lists classes.
+
+### POST /api/madrassa/classes
+
+Creates a class.
+
+### GET /api/madrassa/sections
+
+Lists sections.
+
+### POST /api/madrassa/sections
+
+Creates a section.
+
+### GET /api/madrassa/subjects
+
+Lists subjects.
+
+### POST /api/madrassa/subjects
+
+Creates a subject.
+
+### GET /api/madrassa/timetable
+
+Lists timetable entries.
+
+### POST /api/madrassa/timetable
+
+Creates a timetable entry.

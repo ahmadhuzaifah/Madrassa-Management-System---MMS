@@ -115,10 +115,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       void (async () => {
-        const usersResponse = await api.get<{ users: User[] }>('/api/users');
-        setUsers(usersResponse.users);
-        const overviewResponse = await api.get<{ overview: Overview }>('/api/reports/overview');
-        setOverview(overviewResponse.overview);
+        try {
+          const usersResponse = await api.get<{ users: User[] }>('/api/users');
+          setUsers(usersResponse.users);
+          const overviewResponse = await api.get<{ overview: Overview }>('/api/reports/overview');
+          setOverview(overviewResponse.overview);
+        } catch {
+          setUsers([]);
+        }
       })();
     }
   }, [user]);

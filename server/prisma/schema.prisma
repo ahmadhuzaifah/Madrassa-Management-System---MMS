@@ -63,6 +63,7 @@ model Organization {
   updatedAt       DateTime              @updatedAt
   members         OrganizationMember[]
   invitations     OrganizationInvitation[]
+  madrassas       Madrassa[]
   @@index([ownerId])
 }
 
@@ -249,4 +250,172 @@ model AdminSetting {
   value          String
   updatedAt      DateTime @updatedAt
   createdAt      DateTime @default(now())
+}
+
+model Madrassa {
+  id                String        @id @default(cuid())
+  organizationId    String
+  name              String
+  logoUrl           String?
+  registrationNo    String?
+  address           String?
+  phone             String?
+  email             String?
+  website           String?
+  principalName     String?
+  establishmentYear Int?
+  description       String?
+  isDeleted         Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  organization      Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  branches          Branch[]
+  academicYears     AcademicYear[]
+  departments       Department[]
+  programs          Program[]
+  classes           ClassRoom[]
+  sections          Section[]
+  subjects          Subject[]
+  timetables        Timetable[]
+  @@index([organizationId])
+}
+
+model Branch {
+  id              String        @id @default(cuid())
+  madrassaId      String
+  name            String
+  address         String?
+  contactInfo     String?
+  managerName     String?
+  isActive        Boolean       @default(true)
+  isDeleted       Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  madrassa        Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  classes         ClassRoom[]
+  timetables      Timetable[]
+  @@index([madrassaId])
+}
+
+model AcademicYear {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  name          String
+  startDate     DateTime
+  endDate       DateTime
+  status        String        @default("ACTIVE")
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  classes       ClassRoom[]
+  @@index([madrassaId, status])
+}
+
+model Department {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  name          String
+  description   String?
+  isActive      Boolean       @default(true)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  programs      Program[]
+  @@index([madrassaId])
+}
+
+model Program {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  departmentId  String
+  name          String
+  duration      String?
+  description   String?
+  status        String        @default("ACTIVE")
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  department    Department    @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  classes       ClassRoom[]
+  subjects      Subject[]
+  @@index([madrassaId, departmentId])
+}
+
+model ClassRoom {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  programId     String
+  academicYearId String
+  branchId      String?
+  teacherName   String?
+  name          String
+  capacity      Int?
+  isActive      Boolean       @default(true)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  program       Program       @relation(fields: [programId], references: [id], onDelete: Restrict)
+  academicYear  AcademicYear  @relation(fields: [academicYearId], references: [id], onDelete: Restrict)
+  branch        Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  sections      Section[]
+  subjects      Subject[]
+  timetables    Timetable[]
+  @@index([madrassaId, programId])
+}
+
+model Section {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  classRoomId   String
+  name          String
+  room          String?
+  isActive      Boolean       @default(true)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  classRoom     ClassRoom     @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  @@index([madrassaId, classRoomId])
+}
+
+model Subject {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  programId     String
+  classRoomId   String?
+  name          String
+  code          String?
+  isActive      Boolean       @default(true)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  program       Program       @relation(fields: [programId], references: [id], onDelete: Restrict)
+  classRoom     ClassRoom?    @relation(fields: [classRoomId], references: [id], onDelete: SetNull)
+  timetables    Timetable[]
+  @@index([madrassaId, programId])
+}
+
+model Timetable {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  branchId      String?
+  classRoomId   String
+  subjectId     String
+  teacherName   String?
+  day           String
+  timeSlot      String
+  isActive      Boolean       @default(true)
+  isDeleted     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  branch        Branch?       @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  classRoom     ClassRoom     @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
+  subject       Subject       @relation(fields: [subjectId], references: [id], onDelete: Restrict)
+  @@index([madrassaId, branchId, classRoomId])
 }

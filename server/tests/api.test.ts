@@ -198,4 +198,64 @@ describe('Authentication and users API', () => {
     expect(users.status).toBe(200);
     expect(Array.isArray(users.body.users)).toBe(true);
   });
+
+  it('creates a madrassa profile and branch scoped to the workspace', async () => {
+    const madrassaOwnerPassword = 'SecurePass123!';
+    const madrassaOwner = await prisma.user.create({
+      data: {
+        name: 'Madrassa Owner',
+        email: 'madrassa-owner@example.com',
+        passwordHash: await hashPassword(madrassaOwnerPassword),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    await prisma.organization.create({
+      data: {
+        name: 'Madrassa Workspace',
+        ownerId: madrassaOwner.id,
+        members: { create: { userId: madrassaOwner.id, role: 'OWNER' } },
+      },
+    });
+
+    const profileLogin = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'madrassa-owner@example.com', password: madrassaOwnerPassword });
+
+    const profile = await request(app)
+      .put('/api/madrassa/profile')
+      .set('Cookie', [...(profileLogin.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        name: 'Northstar Madrassa',
+        registrationNo: 'REG-001',
+        address: 'Main Road',
+        phone: '123456789',
+        email: 'info@example.com',
+        website: 'https://example.com',
+        principalName: 'Principal One',
+        establishmentYear: 2020,
+        description: 'Primary madrassa',
+      });
+
+    expect(profile.status).toBe(200);
+    expect(profile.body.madrassa.name).toBe('Northstar Madrassa');
+
+    const branch = await request(app)
+      .post('/api/madrassa/branches')
+      .set('Cookie', [...(profileLogin.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Main Branch', address: 'Branch Address', contactInfo: '555-0100', managerName: 'Branch Manager' });
+
+    expect(branch.status).toBe(201);
+    expect(branch.body.branch.name).toBe('Main Branch');
+
+    const branches = await request(app).get('/api/madrassa/branches').set('Cookie', profileLogin.headers['set-cookie']);
+    expect(branches.status).toBe(200);
+    expect(branches.body.branches).toHaveLength(1);
+  });
 });

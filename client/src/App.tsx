@@ -30,6 +30,14 @@ import { AdminPermissionsPage } from './pages/admin/AdminPermissionsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminLogsPage } from './pages/admin/AdminLogsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
+import { MadrassaProfilePage } from './pages/madrassa/MadrassaProfilePage';
+import { BranchesPage } from './pages/madrassa/BranchesPage';
+import { AcademicYearsPage } from './pages/madrassa/AcademicYearsPage';
+import { DepartmentsPage } from './pages/madrassa/DepartmentsPage';
+import { ProgramsPage } from './pages/madrassa/ProgramsPage';
+import { ClassesPage } from './pages/madrassa/ClassesPage';
+import { SubjectsPage } from './pages/madrassa/SubjectsPage';
+import { TimetablePage } from './pages/madrassa/TimetablePage';
 
 function App() {
   return (
@@ -123,6 +131,14 @@ function App() {
           <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
           <Route path="/files" element={<ProtectedRoute><FilesPage /></ProtectedRoute>} />
           <Route path="/activity" element={<ProtectedRoute><ActivityPage /></ProtectedRoute>} />
+          <Route path="/madrassa/profile" element={<ProtectedRoute><MadrassaProfilePage /></ProtectedRoute>} />
+          <Route path="/branches" element={<ProtectedRoute><BranchesPage /></ProtectedRoute>} />
+          <Route path="/academic-years" element={<ProtectedRoute><AcademicYearsPage /></ProtectedRoute>} />
+          <Route path="/departments" element={<ProtectedRoute><DepartmentsPage /></ProtectedRoute>} />
+          <Route path="/programs" element={<ProtectedRoute><ProgramsPage /></ProtectedRoute>} />
+          <Route path="/classes" element={<ProtectedRoute><ClassesPage /></ProtectedRoute>} />
+          <Route path="/subjects" element={<ProtectedRoute><SubjectsPage /></ProtectedRoute>} />
+          <Route path="/timetable" element={<ProtectedRoute><TimetablePage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

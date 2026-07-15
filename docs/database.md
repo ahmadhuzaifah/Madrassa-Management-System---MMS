@@ -51,6 +51,22 @@ In-app notifications assigned to a user.
 
 Audit events for user actions, subscription updates, and admin operations.
 
+## Madrassa foundation
+
+The madrassa ERP layer adds these workspace-scoped tables:
+
+- `Madrassa`
+- `Branch`
+- `AcademicYear`
+- `Department`
+- `Program`
+- `ClassRoom`
+- `Section`
+- `Subject`
+- `Timetable`
+
+These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
+
 ### FileUpload
 
 Uploaded files metadata with server-side storage path.
