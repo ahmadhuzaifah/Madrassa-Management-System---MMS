@@ -45,6 +45,11 @@ import { AttendancePage } from './pages/attendance/AttendancePage';
 import { DailyAttendancePage } from './pages/attendance/DailyAttendancePage';
 import { AttendanceReportsPage } from './pages/attendance/AttendanceReportsPage';
 import { AttendanceLeavesPage } from './pages/attendance/AttendanceLeavesPage';
+import { FeesPage } from './pages/fees/FeesPage';
+import { FeeStructuresPage } from './pages/fees/FeeStructuresPage';
+import { FeeAssignmentsPage } from './pages/fees/FeeAssignmentsPage';
+import { FeePaymentsPage } from './pages/fees/FeePaymentsPage';
+import { FeeReportsPage } from './pages/fees/FeeReportsPage';
 
 function App() {
   return (
@@ -153,6 +158,11 @@ function App() {
           <Route path="/attendance/daily" element={<ProtectedRoute><DailyAttendancePage /></ProtectedRoute>} />
           <Route path="/attendance/reports" element={<ProtectedRoute><AttendanceReportsPage /></ProtectedRoute>} />
           <Route path="/attendance/leaves" element={<ProtectedRoute><AttendanceLeavesPage /></ProtectedRoute>} />
+          <Route path="/fees" element={<ProtectedRoute><FeesPage /></ProtectedRoute>} />
+          <Route path="/fees/structures" element={<ProtectedRoute><FeeStructuresPage /></ProtectedRoute>} />
+          <Route path="/fees/assignments" element={<ProtectedRoute><FeeAssignmentsPage /></ProtectedRoute>} />
+          <Route path="/fees/payments" element={<ProtectedRoute><FeePaymentsPage /></ProtectedRoute>} />
+          <Route path="/fees/reports" element={<ProtectedRoute><FeeReportsPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

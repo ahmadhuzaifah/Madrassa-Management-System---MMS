@@ -3,7 +3,7 @@ import request from 'supertest';
 import { execFileSync } from 'node:child_process';
 import { rmSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { hashPassword } from '../src/lib/auth.ts';
+import { createToken, hashPassword } from '../src/lib/auth.ts';
 
 process.env.DATABASE_URL = 'file:./test.db';
 process.env.NODE_ENV = 'test';
@@ -394,5 +394,87 @@ describe('Authentication and users API', () => {
 
     expect(dailyReport.status).toBe(200);
     expect(dailyReport.body.summary.present).toBe(1);
+  });
+
+  it('creates fee structures, assigns fees, posts payments, and calculates outstanding balances', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Fee Owner',
+        email: 'fee-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({
+      data: { name: 'Fee Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } },
+    });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Fee Madrassa' } });
+    const branch = await prisma.branch.create({ data: { madrassaId: madrassa.id, name: 'Fee Branch' } });
+    const academicYear = await prisma.academicYear.create({ data: { madrassaId: madrassa.id, name: '2026', startDate: new Date('2026-01-01'), endDate: new Date('2026-12-31') } });
+    const department = await prisma.department.create({ data: { madrassaId: madrassa.id, name: 'Hifz' } });
+    const program = await prisma.program.create({ data: { madrassaId: madrassa.id, departmentId: department.id, name: 'Hifz Basic' } });
+    const classRoom = await prisma.classRoom.create({ data: { madrassaId: madrassa.id, programId: program.id, academicYearId: academicYear.id, branchId: branch.id, name: 'Level 1' } });
+    const student = await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-FEE-${Date.now()}`, fullName: 'Fee Student', branchId: branch.id, programId: program.id, classRoomId: classRoom.id, academicYearId: academicYear.id, status: 'ACTIVE', admissionDate: new Date() } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const structure = await request(app)
+      .post('/api/fees/structures')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Monthly Hifz Fee', amount: 5000, frequency: 'MONTHLY', branchId: branch.id, academicYearId: academicYear.id, programId: program.id, classRoomId: classRoom.id });
+
+    expect(structure.status).toBe(201);
+
+    const assignment = await request(app)
+      .post(`/api/fees/student/${student.id}/assign`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ feeStructureId: structure.body.structure.id, amount: 5000, discountAmount: 500, startDate: '2026-07-01' });
+
+    expect(assignment.status).toBe(201);
+
+    const payment = await request(app)
+      .post('/api/fees/payments')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ studentId: student.id, amount: 1000, paymentMethod: 'CASH', paymentDate: '2026-07-02' });
+
+    expect(payment.status).toBe(201);
+    expect(payment.body.receipt.receiptNumber).toMatch(/^RCPT-/);
+
+    const feeProfile = await request(app).get(`/api/fees/student/${student.id}`).set('Cookie', ownerCookie);
+    expect(feeProfile.status).toBe(200);
+    expect(feeProfile.body.summary.totalAssigned).toBe(4500);
+    expect(feeProfile.body.summary.outstanding).toBe(3500);
+
+    const outstanding = await request(app).get('/api/fees/reports/outstanding').set('Cookie', ownerCookie);
+    expect(outstanding.status).toBe(200);
+    expect(outstanding.body.rows.some((row: { student: { id: string }; due: number }) => row.student.id === student.id && row.due === 3500)).toBe(true);
+
+    const invoice = await request(app).get('/api/fees/invoices').set('Cookie', ownerCookie);
+    expect(invoice.status).toBe(200);
+    expect(invoice.body.invoices.length).toBeGreaterThanOrEqual(1);
+
+    const otherOwner = await prisma.user.create({
+      data: {
+        name: 'Fee Other Owner',
+        email: 'fee-other-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Fee Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Fee Madrassa' } });
+    const otherCookie = `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`;
+    const isolation = await request(app).get('/api/fees/structures').set('Cookie', otherCookie);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.structures).toHaveLength(0);
   });
 });

@@ -79,6 +79,47 @@ export type LeaveRequest = {
   student?: Student;
   createdAt?: string;
 };
+export type FeeStructure = {
+  id: string;
+  name: string;
+  amount: number;
+  frequency: 'MONTHLY' | 'QUARTERLY' | 'YEARLY' | 'ONE_TIME';
+  description?: string | null;
+  status: string;
+  branchId?: string | null;
+  academicYearId?: string | null;
+  programId?: string | null;
+  classRoomId?: string | null;
+};
+export type FeeAssignment = {
+  id: string;
+  amount: number;
+  discountAmount: number;
+  finalAmount: number;
+  startDate: string;
+  endDate?: string | null;
+  status: string;
+  feeStructure?: FeeStructure;
+};
+export type FeePayment = {
+  id: string;
+  amount: number;
+  paymentDate: string;
+  paymentMethod: 'CASH' | 'BANK' | 'ONLINE';
+  referenceNumber?: string | null;
+  receivedBy?: string | null;
+  remarks?: string | null;
+  receiptNumber: string;
+  studentId: string;
+};
+export type FeeInvoice = {
+  id: string;
+  invoiceNumber: string;
+  amount: number;
+  dueDate: string;
+  status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'OVERDUE' | string;
+  studentId: string;
+};
 export type Student = {
   id: string;
   registrationNumber: string;
@@ -108,4 +149,7 @@ export type Student = {
   transfers?: StudentTransfer[];
   attendanceRecords?: AttendanceRecord[];
   attendanceSummary?: AttendanceSummary | null;
+  feeAssignments?: FeeAssignment[];
+  feePayments?: FeePayment[];
+  feeInvoices?: FeeInvoice[];
 };

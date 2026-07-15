@@ -72,6 +72,11 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `AttendanceRecord`
 - `AttendanceSummary`
 - `LeaveRequest`
+- `FeeStructure`
+- `StudentFeeAssignment`
+- `FeePayment`
+- `FeeInvoice`
+- `Discount`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
 
@@ -84,6 +89,18 @@ Attendance data is stored per student and month to support daily marking, report
 - `LeaveRequest` stores student leave requests and approval state.
 
 The attendance models are constrained so a student can only have one attendance record per day and one monthly summary per month/year combination.
+
+## Fee module
+
+The fee module adds fee structures, student fee assignments, payments, invoices, and discounts:
+
+- `FeeStructure` defines reusable pricing templates for classes and programs.
+- `StudentFeeAssignment` applies a structure to a student with optional discounts.
+- `FeePayment` stores collected payments and receipt numbers.
+- `FeeInvoice` tracks dues and invoice status.
+- `Discount` records approved reductions for a student.
+
+The fee tables are workspace-scoped and are linked back to the student and madrassa records for isolation and reporting.
 
 ### FileUpload
 

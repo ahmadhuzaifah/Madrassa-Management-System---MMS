@@ -557,3 +557,53 @@ Creates a leave request for a student.
 ### GET /api/attendance/leaves
 
 Lists leave requests for the current workspace.
+
+## Fees
+
+### GET /api/fees/structures
+
+Lists fee structures for the current madrassa.
+
+### POST /api/fees/structures
+
+Creates a fee structure.
+
+### PATCH /api/fees/structures/:id
+
+Updates a fee structure.
+
+### DELETE /api/fees/structures/:id
+
+Deletes a fee structure.
+
+### GET /api/fees/student/:id
+
+Returns a student's fee assignments, payments, invoices, discounts, and balance summary.
+
+### POST /api/fees/student/:id/assign
+
+Assigns a fee structure to a student.
+
+### POST /api/fees/payments
+
+Records a student payment and generates a receipt/invoice.
+
+### GET /api/fees/payments
+
+Lists fee payments for the workspace.
+
+### GET /api/fees/invoices
+
+Lists fee invoices.
+
+### GET /api/fees/invoices/:id
+
+Returns a single invoice.
+
+### GET /api/fees/reports/collection
+
+Returns total collection and payment rows.
+
+### GET /api/fees/reports/outstanding
+
+Returns outstanding dues per student.
