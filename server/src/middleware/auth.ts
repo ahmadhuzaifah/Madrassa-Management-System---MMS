@@ -18,15 +18,18 @@ export const requireAuth = asyncHandler(async (req: AuthenticatedRequest, _res: 
     throw new AppError(401, 'Authentication required', 'AUTHENTICATION_REQUIRED');
   }
 
-  let payload: { sub: string; role: string };
+  let payload: { sub: string; role: string; ver?: number };
   try {
     payload = verifyToken(token);
   } catch {
     throw new AppError(401, 'Invalid or expired token', 'INVALID_SESSION');
   }
-  const user = await prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, role: true, status: true } });
+  const user = await prisma.user.findUnique({ where: { id: payload.sub }, select: { id: true, role: true, status: true, sessionVersion: true } });
   if (!user) throw new AppError(401, 'Session is no longer valid', 'INVALID_SESSION');
-  if (user.status !== 'ACTIVE') throw new AppError(403, 'This account is not active', 'ACCOUNT_INACTIVE');
+  if (user.status === 'SUSPENDED' || user.status === 'DISABLED') throw new AppError(403, 'This account is not active', 'ACCOUNT_INACTIVE');
+  if (typeof payload.ver === 'number' && payload.ver !== user.sessionVersion) {
+    throw new AppError(401, 'Session is no longer valid', 'INVALID_SESSION');
+  }
   req.user = { id: user.id, role: user.role };
   next();
 });

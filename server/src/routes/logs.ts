@@ -25,4 +25,13 @@ router.get('/', requireAuth, requireRole(['ADMIN']), asyncHandler(async (req, re
   res.json({ logs, pagination: { page, size, total, pages: Math.ceil(total / size) } });
 }));
 
+router.get('/me', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const logs = await prisma.activityLog.findMany({
+    where: { userId: req.user!.id },
+    orderBy: { createdAt: 'desc' },
+    take: 50,
+  });
+  res.json({ logs });
+}));
+
 export default router;

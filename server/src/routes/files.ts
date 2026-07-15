@@ -65,4 +65,15 @@ router.delete('/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest
   res.json({ message: 'File deleted' });
 }));
 
+router.get('/:id/download', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+  const file = await prisma.fileUpload.findUnique({ where: { id } });
+  if (!file) throw new AppError(404, 'File not found', 'NOT_FOUND');
+  if (file.userId !== req.user!.id && req.user!.role !== 'ADMIN') {
+    throw new AppError(403, 'Forbidden', 'FORBIDDEN');
+  }
+  if (!fs.existsSync(file.path)) throw new AppError(404, 'Stored file missing', 'NOT_FOUND');
+  res.download(file.path, file.originalName);
+}));
+
 export default router;

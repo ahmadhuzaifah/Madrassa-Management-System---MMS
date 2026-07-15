@@ -24,3 +24,10 @@ export const sendEmail = async ({ to, subject, html }: { to: string; subject: st
     html,
   });
 };
+
+export const emailTemplates = {
+  verification: (name: string, token: string) => `<p>Hello ${name},</p><p>Your verification token is <strong>${token}</strong>.</p>`,
+  passwordReset: (name: string, token: string) => `<p>Hello ${name},</p><p>Your password reset token is <strong>${token}</strong>.</p>`,
+  welcome: (name: string) => `<p>Welcome ${name},</p><p>Your account is ready.</p>`,
+  activated: (name: string) => `<p>Hello ${name},</p><p>Your account has been activated.</p>`,
+};

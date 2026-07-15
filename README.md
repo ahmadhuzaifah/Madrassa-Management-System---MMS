@@ -15,6 +15,8 @@ The root workspace orchestrates both workspaces for local development and builds
 
 - JWT authentication with secure cookies
 - User management and admin controls
+- Self-service authentication and account recovery
+- Workspace settings, member management, notifications, files, and activity logs
 - Billing plans, subscriptions, and invoice generation
 - Notification feed and read-state tracking
 - File uploads with server-side storage
@@ -76,6 +78,11 @@ npm run build --workspace=@saas-platform/client
 ```bash
 npm run test
 ```
+
+## Phase coverage
+
+- Phase 2: authentication, account management, and routing hardening
+- Phase 3: self-service workspace features, profile management, notifications, files, and activity history
 
 ## Production deployment
 

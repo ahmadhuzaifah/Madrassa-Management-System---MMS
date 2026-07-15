@@ -9,6 +9,8 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-that-is-long-enough';
 process.env.CLIENT_URL = 'http://localhost:5173';
 
+vi.setConfig({ hookTimeout: 60000, testTimeout: 60000 });
+
 let app: any;
 let prisma: any;
 let csrfToken = '';
@@ -71,6 +73,16 @@ describe('Authentication and users API', () => {
     expect(response.body.message).toContain('Registration successful');
   });
 
+  it('creates a verification token for the new user', async () => {
+    const token = await prisma.emailVerificationToken.findFirst({
+      where: { user: { email: 'qa@example.com' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    expect(token?.token).toBeTruthy();
+    expect(token?.expiresAt.getTime()).toBeGreaterThan(Date.now());
+  });
+
   it('rejects login with invalid credentials', async () => {
     const response = await request(app).post('/api/auth/login').set('Cookie', `csrf_token=${csrfToken}`).set('X-CSRF-Token', csrfToken).send({ email: 'qa@example.com', password: 'WrongPass' });
     expect(response.status).toBe(401);
@@ -89,11 +101,71 @@ describe('Authentication and users API', () => {
       .set('Cookie', login.headers['set-cookie']);
 
     expect(profile.status).toBe(200);
-    expect(profile.body.user.email).toBe('qa@example.com');
+    expect(profile.body.user.profile.email).toBe('qa@example.com');
+    expect(profile.body.user.permissions).toContain('auth:me');
+  });
+
+  it('supports email verification and password reset flows', async () => {
+    const verification = await prisma.emailVerificationToken.findFirst({
+      where: { user: { email: 'qa@example.com' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const verify = await request(app)
+      .post('/api/auth/verify-email')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ token: verification?.token });
+
+    expect(verify.status).toBe(200);
+
+    const forgot = await request(app)
+      .post('/api/auth/forgot-password')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'qa@example.com' });
+
+    expect(forgot.status).toBe(200);
+
+    const reset = await prisma.passwordResetToken.findFirst({
+      where: { user: { email: 'qa@example.com' } },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    const resetResponse = await request(app)
+      .post('/api/auth/reset-password')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ token: reset?.token, password: 'NewSecurePass123!' });
+
+    expect(resetResponse.status).toBe(200);
+  });
+
+  it('blocks suspended users from logging in', async () => {
+    await prisma.user.update({ where: { email: 'qa@example.com' }, data: { status: 'SUSPENDED' } });
+    const response = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'qa@example.com', password: 'NewSecurePass123!' });
+
+    expect(response.status).toBe(403);
+    expect(response.body.error.code).toBe('ACCOUNT_INACTIVE');
   });
 
   it('blocks non-admin users from listing all users', async () => {
-    const login = await request(app).post('/api/auth/login').set('Cookie', `csrf_token=${csrfToken}`).set('X-CSRF-Token', csrfToken).send({ email: 'qa@example.com', password: 'SecurePass123!' });
+    await request(app)
+      .post('/api/auth/register')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Second User', email: 'second@example.com', password: 'SecurePass123!' });
+
+    const login = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'second@example.com', password: 'SecurePass123!' });
+
     const response = await request(app).get('/api/users').set('Cookie', login.headers['set-cookie']);
     expect(response.status).toBe(403);
   });

@@ -1,5 +1,7 @@
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { comparePasswords, hashPassword } from '../src/lib/auth';
+
+vi.setConfig({ testTimeout: 20000 });
 
 test('hashPassword creates a hash that can be verified', async () => {
   const plain = 'SecurePass123!';

@@ -11,7 +11,7 @@ const server = await createServer({
     },
   },
   optimizeDeps: {
-    exclude: ['react', 'react-dom', 'react-router-dom', 'lucide-react'],
+    exclude: ['react', 'react-dom', 'react-router-dom', 'lucide-react', 'zod'],
   },
   esbuild: {
     jsx: 'automatic',

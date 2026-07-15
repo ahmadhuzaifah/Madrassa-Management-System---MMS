@@ -62,10 +62,56 @@ Response:
     "role": "USER",
     "emailVerified": false,
     "settings": { ... },
+    "organization": { ... },
     "subscriptions": [ ... ]
   }
 }
 ```
+
+### POST /api/auth/logout-all-sessions
+
+Invalidates all active sessions for the current user.
+
+### PUT /api/auth/profile
+
+Updates the authenticated user's profile fields such as name, phone, and avatar URL.
+
+### POST /api/auth/change-password
+
+Request:
+```json
+{ "currentPassword": "CurrentPass123!", "newPassword": "NewSecurePass123!" }
+```
+
+### POST /api/auth/resend-verification
+
+Request:
+```json
+{ "email": "jane@example.com" }
+```
+
+### GET /api/organization/me
+
+Returns the authenticated user's workspace and members.
+
+### PUT /api/organization/me
+
+Updates workspace settings such as organization name, branding, locale, and contact details.
+
+### GET /api/organization/members
+
+Returns workspace members with profile information and roles.
+
+### POST /api/organization/members/invite
+
+Request:
+```json
+{ "email": "member@example.com", "role": "MEMBER" }
+```
+
+### DELETE /api/organization/members/:userId
+
+Removes a member from the workspace.
 
 ### POST /api/auth/logout
 
@@ -192,6 +238,14 @@ Returns the authenticated user's notifications.
 
 Marks a notification read.
 
+### PATCH /api/notifications/read-all
+
+Marks all notifications as read.
+
+### DELETE /api/notifications/:id
+
+Deletes a notification.
+
 ## Logs
 
 ### GET /api/logs
@@ -213,6 +267,16 @@ Returns uploaded files for the authenticated user.
 ### DELETE /api/files/:id
 
 Deletes a file if the user owns it or is an admin.
+
+### GET /api/files/:id/download
+
+Downloads a file after ownership validation.
+
+## Activity logs
+
+### GET /api/logs/me
+
+Returns the authenticated user's recent activity history.
 
 ## Reports
 

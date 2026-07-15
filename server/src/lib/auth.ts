@@ -16,7 +16,7 @@ export const createToken = (payload: object) => {
 
 export const verifyToken = (token: string) => {
   const secret = getRuntimeConfig().jwtSecret as Secret;
-  return jwt.verify(token, secret) as { sub: string; role: string };
+  return jwt.verify(token, secret) as { sub: string; role: string; ver?: number };
 };
 
 export const createRandomToken = () => crypto.randomBytes(24).toString('hex');

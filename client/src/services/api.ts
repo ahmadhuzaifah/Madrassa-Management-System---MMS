@@ -20,6 +20,8 @@ class ApiClient {
   get<T>(path: string) { return this.request<T>(path); }
   post<T>(path: string, body?: unknown) { return this.request<T>(path, { method: 'POST', headers: this.headers(), body: body ? JSON.stringify(body) : undefined }); }
   put<T>(path: string, body?: unknown) { return this.request<T>(path, { method: 'PUT', headers: this.headers(), body: body ? JSON.stringify(body) : undefined }); }
+  patch<T>(path: string, body?: unknown) { return this.request<T>(path, { method: 'PATCH', headers: this.headers(), body: body ? JSON.stringify(body) : undefined }); }
+  delete<T>(path: string) { return this.request<T>(path, { method: 'DELETE', headers: this.headers() }); }
   upload<T>(path: string, body: FormData) { return this.request<T>(path, { method: 'POST', headers: this.headers(false), body }); }
 }
 

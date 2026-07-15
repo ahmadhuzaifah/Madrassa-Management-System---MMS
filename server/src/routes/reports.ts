@@ -31,7 +31,7 @@ router.get('/export', requireAuth, asyncHandler(async (req: AuthenticatedRequest
     orderBy: { issuedAt: 'desc' },
     take: 100,
   });
-  const csv = ['id,invoiceNumber,amount,currency,status,issuedAt', ...invoices.map((invoice) => [invoice.id, invoice.invoiceNumber, invoice.amount, invoice.currency, invoice.status, invoice.issuedAt.toISOString()].map(escapeCsv).join(','))].join('\n');
+  const csv = ['id,invoiceNumber,amount,currency,status,issuedAt', ...invoices.map((invoice: any) => [invoice.id, invoice.invoiceNumber, invoice.amount, invoice.currency, invoice.status, invoice.issuedAt.toISOString()].map(escapeCsv).join(','))].join('\n');
   res.setHeader('Content-Type', 'text/csv');
   res.setHeader('Content-Disposition', 'attachment; filename=invoice-export.csv');
   res.send(csv);
