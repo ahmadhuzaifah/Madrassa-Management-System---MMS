@@ -1,7 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import { AppLayout } from './layouts/AppLayout';
-import { GuestRoute, ProtectedRoute } from './routes/ProtectedRoute';
+import { AdminRoute, GuestRoute, ProtectedRoute } from './routes/ProtectedRoute';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { HomePage } from './pages/home/HomePage';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -21,6 +21,15 @@ import { MembersPage } from './pages/settings/MembersPage';
 import { NotificationsPage } from './pages/notifications/NotificationsPage';
 import { FilesPage } from './pages/files/FilesPage';
 import { ActivityPage } from './pages/activity/ActivityPage';
+import { AdminLayout } from './layouts/AdminLayout';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminUsersPage } from './pages/admin/AdminUsersPage';
+import { AdminOrganizationsPage } from './pages/admin/AdminOrganizationsPage';
+import { AdminRolesPage } from './pages/admin/AdminRolesPage';
+import { AdminPermissionsPage } from './pages/admin/AdminPermissionsPage';
+import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
+import { AdminLogsPage } from './pages/admin/AdminLogsPage';
+import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 
 function App() {
   return (
@@ -49,6 +58,17 @@ function App() {
         />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/session-expired" element={<SessionExpiredPage />} />
+        <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route index element={<AdminDashboardPage />} />
+          <Route path="dashboard" element={<AdminDashboardPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="organizations" element={<AdminOrganizationsPage />} />
+          <Route path="roles" element={<AdminRolesPage />} />
+          <Route path="permissions" element={<AdminPermissionsPage />} />
+          <Route path="settings" element={<AdminSettingsPage />} />
+          <Route path="logs" element={<AdminLogsPage />} />
+          <Route path="reports" element={<AdminReportsPage />} />
+        </Route>
         <Route element={<AppLayout />}>
           <Route
             path="/dashboard"

@@ -34,3 +34,21 @@ export function GuestRoute({ children }: { children: ReactNode }) {
 
   return <>{children}</>;
 }
+
+export function AdminRoute({ children }: { children: ReactNode }) {
+  const { isAuthenticated, loading, user } = useAppContext();
+
+  if (loading) {
+    return <div className="panel">Loading session...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user?.role !== 'ADMIN') {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
+}

@@ -61,4 +61,44 @@ describe('App shell', () => {
 
     expect(await screen.findByText(/Welcome back, QA Tester/i)).toBeInTheDocument();
   });
+
+  it('renders the admin dashboard for admin sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Admin User', email: 'admin@example.com', role: 'ADMIN', emailVerified: true }, role: 'ADMIN', permissions: ['users:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/admin/dashboard')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ metrics: { totalUsers: 10, activeUsers: 8, organizations: 2, subscriptions: 4, revenue: 1200, roles: 2, permissions: 8, storageBytes: 2048 }, recentActivity: [], growth: [] }) });
+      }
+      if (url.includes('/api/plans')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      }
+      if (url.includes('/api/subscriptions/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      }
+      if (url.includes('/api/notifications')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      }
+      if (url.includes('/api/organization/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ organization: null }) });
+      }
+      if (url.includes('/api/files')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ files: [] }) });
+      }
+      if (url.includes('/api/logs/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ logs: [] }) });
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admin/dashboard']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Platform oversight/i)).toBeInTheDocument();
+    expect(screen.getByText(/Total users/i)).toBeInTheDocument();
+  });
 });

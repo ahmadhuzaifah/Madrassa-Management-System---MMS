@@ -287,3 +287,89 @@ Requires ADMIN role.
 ### GET /api/reports/export
 
 Exports a CSV of invoices.
+
+## Admin
+
+### GET /api/admin/dashboard
+
+Returns admin metrics, recent activity, and growth data.
+
+### GET /api/admin/users
+
+Supports `page`, `size`, `search`, `status`, and `role`.
+
+### GET /api/admin/users/:id
+
+Returns a detailed user record with subscriptions and activity.
+
+### PATCH /api/admin/users/:id
+
+Updates user profile, role, or status.
+
+### POST /api/admin/users/:id/reset-password
+
+Resets a user's password and invalidates their sessions.
+
+### DELETE /api/admin/users/:id
+
+Deletes a user record.
+
+### GET /api/admin/organizations
+
+Lists all organizations with members and invitations.
+
+### PATCH /api/admin/organizations/:id
+
+Updates organization settings.
+
+### DELETE /api/admin/organizations/:id
+
+Deletes an organization.
+
+### GET /api/admin/roles
+
+Lists all roles and assigned permissions.
+
+### POST /api/admin/roles
+
+Creates a role with optional permission assignments.
+
+### PATCH /api/admin/roles/:id
+
+Updates a role and its permissions.
+
+### DELETE /api/admin/roles/:id
+
+Deletes a role.
+
+### GET /api/admin/permissions
+
+Lists permissions.
+
+### POST /api/admin/permissions
+
+Creates a permission.
+
+### PATCH /api/admin/permissions/:id
+
+Updates a permission.
+
+### DELETE /api/admin/permissions/:id
+
+Deletes a permission.
+
+### GET /api/admin/settings
+
+Returns admin system settings.
+
+### PUT /api/admin/settings
+
+Updates admin system settings.
+
+### GET /api/admin/logs
+
+Returns audit log entries with optional filters.
+
+### GET /api/admin/reports
+
+Returns admin reporting data for users, organizations, activity, and storage.

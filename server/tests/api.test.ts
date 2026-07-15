@@ -3,6 +3,7 @@ import request from 'supertest';
 import { execFileSync } from 'node:child_process';
 import { rmSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { hashPassword } from '../src/lib/auth.ts';
 
 process.env.DATABASE_URL = 'file:./test.db';
 process.env.NODE_ENV = 'test';
@@ -168,5 +169,33 @@ describe('Authentication and users API', () => {
 
     const response = await request(app).get('/api/users').set('Cookie', login.headers['set-cookie']);
     expect(response.status).toBe(403);
+  });
+
+  it('allows admin users to access the admin dashboard APIs', async () => {
+    await prisma.user.create({
+      data: {
+        name: 'Admin User',
+        email: 'admin-check@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'ADMIN',
+        settings: { create: {} },
+      },
+    });
+
+    const login = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'admin-check@example.com', password: 'SecurePass123!' });
+
+    expect(login.status).toBe(200);
+
+    const dashboard = await request(app).get('/api/admin/dashboard').set('Cookie', login.headers['set-cookie']);
+    expect(dashboard.status).toBe(200);
+    expect(dashboard.body.metrics.totalUsers).toBeGreaterThanOrEqual(1);
+
+    const users = await request(app).get('/api/admin/users').set('Cookie', login.headers['set-cookie']);
+    expect(users.status).toBe(200);
+    expect(Array.isArray(users.body.users)).toBe(true);
   });
 });
