@@ -555,4 +555,73 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.exams).toHaveLength(0);
   });
+
+  it('creates certificate templates, generates certificates, verifies them, and enforces isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Certificate Owner',
+        email: 'cert-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Certificate Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Certificate Madrassa' } });
+    const branch = await prisma.branch.create({ data: { madrassaId: madrassa.id, name: 'Certificate Branch' } });
+    const academicYear = await prisma.academicYear.create({ data: { madrassaId: madrassa.id, name: '2026', startDate: new Date('2026-01-01'), endDate: new Date('2026-12-31') } });
+    const department = await prisma.department.create({ data: { madrassaId: madrassa.id, name: 'Hifz' } });
+    const program = await prisma.program.create({ data: { madrassaId: madrassa.id, departmentId: department.id, name: 'Hifz 1' } });
+    const classRoom = await prisma.classRoom.create({ data: { madrassaId: madrassa.id, programId: program.id, academicYearId: academicYear.id, branchId: branch.id, name: 'Class A' } });
+    const student = await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-CERT-${Date.now()}`, fullName: 'Certificate Student', branchId: branch.id, programId: program.id, classRoomId: classRoom.id, academicYearId: academicYear.id, status: 'ACTIVE', admissionDate: new Date() } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const template = await request(app)
+      .post('/api/certificates/templates')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Completion Template', type: 'COURSE_COMPLETION', templateContent: 'Certificate for {{studentName}}' });
+
+    expect(template.status).toBe(201);
+
+    const generated = await request(app)
+      .post('/api/certificates/generate')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ studentId: student.id, templateId: template.body.template.id, type: 'COURSE_COMPLETION', title: 'Course Completion', description: 'Completed course' });
+
+    expect(generated.status).toBe(201);
+    expect(generated.body.certificate.certificateNumber).toMatch(/^CERT-2026-/);
+
+    const detail = await request(app).get(`/api/certificates/${generated.body.certificate.id}`).set('Cookie', ownerCookie);
+    expect(detail.status).toBe(200);
+
+    const verify = await request(app).get(`/api/certificates/verify/${detail.body.certificate.verification.verificationCode}`);
+    expect(verify.status).toBe(200);
+    expect(verify.body.certificate.certificateNumber).toBe(generated.body.certificate.certificateNumber);
+
+    const studentCertificates = await request(app).get(`/api/certificates/student/${student.id}`).set('Cookie', ownerCookie);
+    expect(studentCertificates.status).toBe(200);
+    expect(studentCertificates.body.certificates).toHaveLength(1);
+
+    const revoke = await request(app)
+      .delete(`/api/certificates/${generated.body.certificate.id}`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken);
+    expect(revoke.status).toBe(200);
+
+    const revoked = await request(app).get(`/api/certificates/${generated.body.certificate.id}`).set('Cookie', ownerCookie);
+    expect(revoked.body.certificate.status).toBe('REVOKED');
+
+    const otherOwner = await prisma.user.create({ data: { name: 'Certificate Other Owner', email: 'cert-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Certificate Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Certificate Madrassa' } });
+    const otherCookie = `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`;
+    const isolation = await request(app).get('/api/certificates/templates').set('Cookie', otherCookie);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.templates).toHaveLength(0);
+  });
 });

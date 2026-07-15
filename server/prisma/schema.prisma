@@ -492,6 +492,7 @@ model Student {
   discounts         Discount[]
   examResults       StudentExamResult[]
   resultCards       ResultCard[]
+  certificates      Certificate[]
   @@index([madrassaId, status])
 }
 
@@ -735,4 +736,44 @@ model ResultCard {
   student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
   @@unique([studentId, examId])
+}
+
+model CertificateTemplate {
+  id              String   @id @default(cuid())
+  organizationId  String
+  name            String
+  type            String
+  templateContent String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  certificates    Certificate[]
+  @@index([organizationId])
+}
+
+model Certificate {
+  id               String   @id @default(cuid())
+  organizationId   String
+  studentId        String
+  templateId       String?
+  certificateNumber String   @unique
+  issueDate        DateTime
+  title            String
+  description      String?
+  issuedBy         String?
+  status           String   @default("ACTIVE")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  template         CertificateTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  verification     CertificateVerification?
+  @@index([organizationId, studentId])
+}
+
+model CertificateVerification {
+  id              String   @id @default(cuid())
+  certificateId   String   @unique
+  verificationCode String   @unique
+  verifiedAt      DateTime?
+  ipAddress       String?
+  certificate     Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
 }

@@ -145,4 +145,27 @@ describe('App shell', () => {
     expect(await screen.findByText(/Exams/i)).toBeInTheDocument();
     expect(screen.getByText(/Create exam/i)).toBeInTheDocument();
   });
+
+  it('renders the certificates workspace and public verification page', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Cert User', email: 'cert@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      if (url.includes('/api/certificates/verify/')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ certificate: { certificateNumber: 'CERT-2026-0001' }, verification: {} }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/certificates']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Certificates/i)).toBeInTheDocument();
+    expect(screen.getByText(/Templates/i)).toBeInTheDocument();
+  });
 });

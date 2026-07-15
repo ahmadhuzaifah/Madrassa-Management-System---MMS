@@ -56,6 +56,11 @@ import { ExamDetailPage } from './pages/exams/ExamDetailPage';
 import { ExamMarksEntryPage } from './pages/exams/ExamMarksEntryPage';
 import { ExamResultsPage } from './pages/exams/ExamResultsPage';
 import { ExamResultCardPage } from './pages/exams/ExamResultCardPage';
+import { CertificatesPage } from './pages/certificates/CertificatesPage';
+import { CertificateTemplatesPage } from './pages/certificates/CertificateTemplatesPage';
+import { CertificateGeneratePage } from './pages/certificates/CertificateGeneratePage';
+import { CertificateDetailPage } from './pages/certificates/CertificateDetailPage';
+import { CertificateVerifyPage } from './pages/certificates/CertificateVerifyPage';
 
 function App() {
   return (
@@ -175,6 +180,11 @@ function App() {
           <Route path="/exams/marks-entry" element={<ProtectedRoute><ExamMarksEntryPage /></ProtectedRoute>} />
           <Route path="/exams/results" element={<ProtectedRoute><ExamResultsPage /></ProtectedRoute>} />
           <Route path="/exams/result-card" element={<ProtectedRoute><ExamResultCardPage /></ProtectedRoute>} />
+          <Route path="/certificates" element={<ProtectedRoute><CertificatesPage /></ProtectedRoute>} />
+          <Route path="/certificates/templates" element={<ProtectedRoute><CertificateTemplatesPage /></ProtectedRoute>} />
+          <Route path="/certificates/generate" element={<ProtectedRoute><CertificateGeneratePage /></ProtectedRoute>} />
+          <Route path="/certificates/:id" element={<ProtectedRoute><CertificateDetailPage /></ProtectedRoute>} />
+          <Route path="/verify-certificate/:code" element={<CertificateVerifyPage />} />
         </Route>
       </Routes>
     </AppProvider>

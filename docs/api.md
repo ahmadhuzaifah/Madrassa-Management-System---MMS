@@ -657,3 +657,45 @@ Returns class result cards for an exam.
 ### GET /api/exams/reports/subject
 
 Returns subject performance results for an exam.
+
+## Certificates
+
+### GET /api/certificates/templates
+
+Lists certificate templates for the workspace.
+
+### POST /api/certificates/templates
+
+Creates a certificate template.
+
+### PATCH /api/certificates/templates/:id
+
+Updates a certificate template.
+
+### DELETE /api/certificates/templates/:id
+
+Deletes a certificate template.
+
+### GET /api/certificates
+
+Lists certificates for the workspace.
+
+### POST /api/certificates/generate
+
+Generates and stores a certificate for a student.
+
+### GET /api/certificates/:id
+
+Returns certificate details.
+
+### DELETE /api/certificates/:id
+
+Revokes a certificate.
+
+### GET /api/certificates/verify/:code
+
+Public verification endpoint for certificate status.
+
+### GET /api/certificates/student/:id
+
+Lists certificates issued to a student.

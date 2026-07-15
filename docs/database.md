@@ -82,6 +82,9 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `StudentExamResult`
 - `GradeScale`
 - `ResultCard`
+- `CertificateTemplate`
+- `Certificate`
+- `CertificateVerification`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
 
@@ -118,6 +121,14 @@ The exams module adds workspace-scoped exams, exam subject mappings, marks, grad
 - `ResultCard` stores calculated totals, percentage, grade, and position.
 
 Result cards are generated per student and exam after marks entry so they can be rendered and printed later.
+
+## Certificates module
+
+The certificates module stores templates, issued certificates, and public verification records:
+
+- `CertificateTemplate` stores reusable layout text and certificate type.
+- `Certificate` stores issued certificates with a sequential certificate number.
+- `CertificateVerification` stores the public verification code and verification metadata.
 
 ### FileUpload
 

@@ -124,6 +124,8 @@ export type Exam = { id: string; name: string; examType: 'MONTHLY' | 'QUARTERLY'
 export type ExamSubject = { id: string; subjectId: string; totalMarks: number; passingMarks: number };
 export type ExamResult = { id: string; examId: string; studentId: string; subjectId: string; obtainedMarks: number; grade: string; remarks?: string | null; student?: Student };
 export type ResultCard = { id: string; studentId: string; examId: string; totalMarks: number; obtainedMarks: number; percentage: number; grade: string; position?: number | null; generatedAt?: string };
+export type CertificateTemplate = { id: string; name: string; type: string; templateContent: string };
+export type Certificate = { id: string; certificateNumber: string; issueDate: string; title: string; description?: string | null; issuedBy?: string | null; status: string; studentId: string; template?: CertificateTemplate | null; verification?: { verificationCode: string; verifiedAt?: string | null; ipAddress?: string | null } | null };
 export type Student = {
   id: string;
   registrationNumber: string;
@@ -158,4 +160,5 @@ export type Student = {
   feeInvoices?: FeeInvoice[];
   examResults?: ExamResult[];
   resultCards?: ResultCard[];
+  certificates?: Certificate[];
 };
