@@ -316,4 +316,83 @@ describe('Authentication and users API', () => {
     expect(profile.status).toBe(200);
     expect(profile.body.student.transfers).toHaveLength(1);
   });
+
+  it('marks attendance, prevents duplicates, and returns student attendance summaries', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Attendance Owner',
+        email: 'attendance-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({
+      data: {
+        name: 'Attendance Workspace',
+        ownerId: owner.id,
+        members: { create: { userId: owner.id, role: 'OWNER' } },
+      },
+    });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Attendance Madrassa' } });
+    const branch = await prisma.branch.create({ data: { madrassaId: madrassa.id, name: 'Attendance Branch' } });
+    const student = await prisma.student.create({
+      data: {
+        madrassaId: madrassa.id,
+        registrationNumber: `STU-2026-${Date.now()}`,
+        fullName: 'Attendance Student',
+        branchId: branch.id,
+        status: 'ACTIVE',
+        admissionDate: new Date(),
+      },
+    });
+
+    const login = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'attendance-owner@example.com', password: 'SecurePass123!' });
+
+    const mark = await request(app)
+      .post('/api/attendance')
+      .set('Cookie', [...(login.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        date: '2026-07-01',
+        branchId: branch.id,
+        records: [{ studentId: student.id, status: 'PRESENT' }],
+      });
+
+    expect(mark.status).toBe(201);
+    expect(mark.body.records).toHaveLength(1);
+
+    const duplicate = await request(app)
+      .post('/api/attendance')
+      .set('Cookie', [...(login.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        date: '2026-07-01',
+        branchId: branch.id,
+        records: [{ studentId: student.id, status: 'ABSENT' }],
+      });
+
+    expect(duplicate.status).toBe(409);
+
+    const studentReport = await request(app)
+      .get(`/api/attendance/student/${student.id}`)
+      .set('Cookie', login.headers['set-cookie']);
+
+    expect(studentReport.status).toBe(200);
+    expect(studentReport.body.summary.totalDays).toBe(1);
+    expect(studentReport.body.summary.presentDays).toBe(1);
+
+    const dailyReport = await request(app)
+      .get('/api/attendance/reports/daily?date=2026-07-01')
+      .set('Cookie', login.headers['set-cookie']);
+
+    expect(dailyReport.status).toBe(200);
+    expect(dailyReport.body.summary.present).toBe(1);
+  });
 });

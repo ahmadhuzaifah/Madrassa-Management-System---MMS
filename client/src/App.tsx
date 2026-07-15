@@ -41,6 +41,10 @@ import { TimetablePage } from './pages/madrassa/TimetablePage';
 import { StudentsPage } from './pages/students/StudentsPage';
 import { StudentAdmissionPage } from './pages/students/StudentAdmissionPage';
 import { StudentProfilePage } from './pages/students/StudentProfilePage';
+import { AttendancePage } from './pages/attendance/AttendancePage';
+import { DailyAttendancePage } from './pages/attendance/DailyAttendancePage';
+import { AttendanceReportsPage } from './pages/attendance/AttendanceReportsPage';
+import { AttendanceLeavesPage } from './pages/attendance/AttendanceLeavesPage';
 
 function App() {
   return (
@@ -145,6 +149,10 @@ function App() {
           <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
           <Route path="/students/admission" element={<ProtectedRoute><StudentAdmissionPage /></ProtectedRoute>} />
           <Route path="/students/:id" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
+          <Route path="/attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
+          <Route path="/attendance/daily" element={<ProtectedRoute><DailyAttendancePage /></ProtectedRoute>} />
+          <Route path="/attendance/reports" element={<ProtectedRoute><AttendanceReportsPage /></ProtectedRoute>} />
+          <Route path="/attendance/leaves" element={<ProtectedRoute><AttendanceLeavesPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

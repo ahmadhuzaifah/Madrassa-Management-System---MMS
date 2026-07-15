@@ -523,3 +523,37 @@ Lists student transfers.
 ### POST /api/students/:id/transfer
 
 Transfers a student between branches or classes.
+
+## Attendance
+
+### GET /api/attendance
+
+Lists attendance records with optional filters for date, branch, class, and section.
+
+### POST /api/attendance
+
+Marks batch attendance for a class or section and prevents duplicate records for the same student and date.
+
+### PATCH /api/attendance/:id
+
+Updates an attendance record.
+
+### GET /api/attendance/reports/daily
+
+Returns daily attendance records and summary counts.
+
+### GET /api/attendance/reports/monthly
+
+Returns monthly attendance records for reporting.
+
+### GET /api/attendance/student/:id
+
+Returns a student attendance history and summary metrics.
+
+### POST /api/attendance/leaves
+
+Creates a leave request for a student.
+
+### GET /api/attendance/leaves
+
+Lists leave requests for the current workspace.

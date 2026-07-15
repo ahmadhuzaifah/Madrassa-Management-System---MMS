@@ -483,6 +483,9 @@ model Student {
   guardian          Guardian?     @relation(fields: [guardianId], references: [id], onDelete: SetNull)
   documents         StudentDocument[]
   transfers         StudentTransfer[]
+  attendanceRecords  AttendanceRecord[]
+  attendanceSummaries AttendanceSummary[]
+  leaveRequests     LeaveRequest[]
   @@index([madrassaId, status])
 }
 
@@ -511,4 +514,60 @@ model StudentTransfer {
   updatedAt         DateTime @updatedAt
   student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   @@index([studentId, transferDate])
+}
+
+model AttendanceRecord {
+  id            String   @id @default(cuid())
+  organizationId String
+  madrassaId    String
+  branchId      String?
+  academicYearId String?
+  classRoomId   String?
+  sectionId     String?
+  studentId     String
+  date          DateTime
+  status        String
+  remarks       String?
+  markedBy      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([studentId, date])
+  @@index([organizationId, date])
+  @@index([studentId, date])
+}
+
+model AttendanceSummary {
+  id            String   @id @default(cuid())
+  organizationId String
+  madrassaId    String
+  studentId     String
+  month         Int
+  year          Int
+  totalDays     Int
+  presentDays   Int
+  absentDays    Int
+  lateDays      Int
+  leaveDays     Int
+  percentage    Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([studentId, month, year])
+}
+
+model LeaveRequest {
+  id            String   @id @default(cuid())
+  organizationId String
+  madrassaId    String
+  studentId     String
+  dateFrom      DateTime
+  dateTo        DateTime
+  reason        String
+  status        String   @default("PENDING")
+  approvedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@index([studentId, status])
 }

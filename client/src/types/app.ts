@@ -42,6 +42,43 @@ export type AdminSetting = { id: string; key: string; value: string };
 export type Guardian = { id: string; name: string; relationship: string; phone?: string | null; email?: string | null; address?: string | null; occupation?: string | null };
 export type StudentDocument = { id: string; documentName: string; fileUrl: string; uploadedAt: string };
 export type StudentTransfer = { id: string; previousBranchId?: string | null; newBranchId?: string | null; previousClassRoomId?: string | null; newClassRoomId?: string | null; transferDate: string; reason?: string | null };
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'LATE' | 'LEAVE';
+export type AttendanceRecord = {
+  id: string;
+  date: string;
+  status: AttendanceStatus;
+  remarks?: string | null;
+  studentId: string;
+  student?: Student;
+  branchId?: string | null;
+  classRoomId?: string | null;
+  sectionId?: string | null;
+  markedBy?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+export type AttendanceSummary = {
+  id?: string;
+  month?: number;
+  year?: number;
+  totalDays: number;
+  presentDays: number;
+  absentDays: number;
+  lateDays: number;
+  leaveDays: number;
+  percentage: number;
+};
+export type LeaveRequest = {
+  id: string;
+  studentId: string;
+  dateFrom: string;
+  dateTo: string;
+  reason: string;
+  status?: string;
+  approvedBy?: string | null;
+  student?: Student;
+  createdAt?: string;
+};
 export type Student = {
   id: string;
   registrationNumber: string;
@@ -69,4 +106,6 @@ export type Student = {
   guardian?: Guardian | null;
   documents?: StudentDocument[];
   transfers?: StudentTransfer[];
+  attendanceRecords?: AttendanceRecord[];
+  attendanceSummary?: AttendanceSummary | null;
 };

@@ -69,8 +69,21 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `Student`
 - `StudentDocument`
 - `StudentTransfer`
+- `AttendanceRecord`
+- `AttendanceSummary`
+- `LeaveRequest`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
+
+## Attendance module
+
+Attendance data is stored per student and month to support daily marking, reporting, and summary metrics:
+
+- `AttendanceRecord` stores the daily mark for a student.
+- `AttendanceSummary` stores monthly totals and percentage values.
+- `LeaveRequest` stores student leave requests and approval state.
+
+The attendance models are constrained so a student can only have one attendance record per day and one monthly summary per month/year combination.
 
 ### FileUpload
 
