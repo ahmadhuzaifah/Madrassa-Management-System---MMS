@@ -26,9 +26,16 @@ beforeAll(async () => {
   }
 
   const prismaCliPath = path.resolve(__dirname, '../../node_modules/prisma/build/index.js');
+  const schemaEnginePath = path.resolve(__dirname, '../../node_modules/@prisma/engines/schema-engine-windows.exe');
+  const serverDirectory = path.resolve(__dirname, '..');
 
-  execFileSync(process.execPath, [prismaCliPath, 'db', 'push', '--skip-generate'], {
-    cwd: path.resolve(__dirname, '..'),
+  execFileSync(schemaEnginePath, ['cli', '--datasource', 'file:./prisma/test.db', 'create-database'], {
+    cwd: serverDirectory,
+    stdio: 'inherit',
+  });
+
+  execFileSync(process.execPath, [prismaCliPath, 'migrate', 'deploy'], {
+    cwd: serverDirectory,
     env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL! },
     stdio: 'inherit',
   });
@@ -67,7 +74,7 @@ describe('Authentication and users API', () => {
   it('rejects login with invalid credentials', async () => {
     const response = await request(app).post('/api/auth/login').set('Cookie', `csrf_token=${csrfToken}`).set('X-CSRF-Token', csrfToken).send({ email: 'qa@example.com', password: 'WrongPass' });
     expect(response.status).toBe(401);
-    expect(response.body.message).toBe('Invalid credentials');
+    expect(response.body.error).toMatchObject({ code: 'INVALID_CREDENTIALS', message: 'Invalid credentials' });
   });
 
   it('allows a registered user to log in and retrieve profile data', async () => {
