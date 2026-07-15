@@ -258,4 +258,62 @@ describe('Authentication and users API', () => {
     expect(branches.status).toBe(200);
     expect(branches.body.branches).toHaveLength(1);
   });
+
+  it('creates and transfers a student within the madrassa workspace', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Student Owner',
+        email: 'student-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({
+      data: {
+        name: 'Student Workspace',
+        ownerId: owner.id,
+        members: { create: { userId: owner.id, role: 'OWNER' } },
+      },
+    });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Student Madrassa' } });
+    const branch = await prisma.branch.create({ data: { madrassaId: madrassa.id, name: 'North Branch' } });
+
+    const login = await request(app)
+      .post('/api/auth/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'student-owner@example.com', password: 'SecurePass123!' });
+
+    const admission = await request(app)
+      .post('/api/students/admission')
+      .set('Cookie', [...(login.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        fullName: 'Ali Hassan',
+        fatherName: 'Hassan',
+        dateOfBirth: '2012-01-01',
+        gender: 'Male',
+        branchId: branch.id,
+        academicYearId: null,
+        guardian: { name: 'Guardian One', relationship: 'Father', phone: '03001234567' },
+      });
+
+    expect(admission.status).toBe(201);
+    expect(admission.body.student.registrationNumber).toMatch(/^STU-\d{4}-\d{4}$/);
+
+    const transfer = await request(app)
+      .post(`/api/students/${admission.body.student.id}/transfer`)
+      .set('Cookie', [...(login.headers['set-cookie'] ?? []), `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ newBranchId: branch.id, reason: 'Class placement' });
+
+    expect(transfer.status).toBe(201);
+
+    const profile = await request(app).get(`/api/students/${admission.body.student.id}`).set('Cookie', login.headers['set-cookie']);
+    expect(profile.status).toBe(200);
+    expect(profile.body.student.transfers).toHaveLength(1);
+  });
 });

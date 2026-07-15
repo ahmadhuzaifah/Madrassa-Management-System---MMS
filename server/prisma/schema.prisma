@@ -277,6 +277,9 @@ model Madrassa {
   sections          Section[]
   subjects          Subject[]
   timetables        Timetable[]
+  students          Student[]
+  guardians         Guardian[]
+  studentSequences  StudentSequence[]
   @@index([organizationId])
 }
 
@@ -418,4 +421,94 @@ model Timetable {
   classRoom     ClassRoom     @relation(fields: [classRoomId], references: [id], onDelete: Cascade)
   subject       Subject       @relation(fields: [subjectId], references: [id], onDelete: Restrict)
   @@index([madrassaId, branchId, classRoomId])
+}
+
+model Guardian {
+  id            String        @id @default(cuid())
+  madrassaId    String
+  name          String
+  relationship  String
+  phone         String?
+  email         String?
+  address       String?
+  occupation    String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  students      Student[]
+  @@index([madrassaId])
+}
+
+model StudentSequence {
+  id            String   @id @default(cuid())
+  madrassaId    String
+  year          Int
+  sequence      Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  madrassa      Madrassa @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  @@unique([madrassaId, year])
+}
+
+model Student {
+  id                String        @id @default(cuid())
+  madrassaId        String
+  guardianId        String?
+  registrationNumber String        @unique
+  admissionNumber   String?
+  fullName          String
+  fatherName        String?
+  grandfatherName   String?
+  dateOfBirth       DateTime?
+  gender            String?
+  photo             String?
+  phone             String?
+  guardianPhone     String?
+  email             String?
+  address           String?
+  city              String?
+  province          String?
+  branchId          String?
+  departmentId      String?
+  programId         String?
+  classRoomId       String?
+  sectionId         String?
+  academicYearId    String?
+  status            String        @default("ACTIVE")
+  admissionDate     DateTime      @default(now())
+  isDeleted         Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  madrassa          Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
+  guardian          Guardian?     @relation(fields: [guardianId], references: [id], onDelete: SetNull)
+  documents         StudentDocument[]
+  transfers         StudentTransfer[]
+  @@index([madrassaId, status])
+}
+
+model StudentDocument {
+  id            String   @id @default(cuid())
+  studentId     String
+  documentName  String
+  fileUrl       String
+  uploadedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@index([studentId])
+}
+
+model StudentTransfer {
+  id                String   @id @default(cuid())
+  studentId         String
+  previousBranchId  String?
+  newBranchId       String?
+  previousClassRoomId String?
+  newClassRoomId    String?
+  transferDate      DateTime @default(now())
+  reason            String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  student           Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@index([studentId, transferDate])
 }

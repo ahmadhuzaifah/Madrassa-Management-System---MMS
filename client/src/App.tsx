@@ -38,6 +38,9 @@ import { ProgramsPage } from './pages/madrassa/ProgramsPage';
 import { ClassesPage } from './pages/madrassa/ClassesPage';
 import { SubjectsPage } from './pages/madrassa/SubjectsPage';
 import { TimetablePage } from './pages/madrassa/TimetablePage';
+import { StudentsPage } from './pages/students/StudentsPage';
+import { StudentAdmissionPage } from './pages/students/StudentAdmissionPage';
+import { StudentProfilePage } from './pages/students/StudentProfilePage';
 
 function App() {
   return (
@@ -139,6 +142,9 @@ function App() {
           <Route path="/classes" element={<ProtectedRoute><ClassesPage /></ProtectedRoute>} />
           <Route path="/subjects" element={<ProtectedRoute><SubjectsPage /></ProtectedRoute>} />
           <Route path="/timetable" element={<ProtectedRoute><TimetablePage /></ProtectedRoute>} />
+          <Route path="/students" element={<ProtectedRoute><StudentsPage /></ProtectedRoute>} />
+          <Route path="/students/admission" element={<ProtectedRoute><StudentAdmissionPage /></ProtectedRoute>} />
+          <Route path="/students/:id" element={<ProtectedRoute><StudentProfilePage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

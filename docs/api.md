@@ -481,3 +481,45 @@ Lists timetable entries.
 ### POST /api/madrassa/timetable
 
 Creates a timetable entry.
+
+## Students
+
+### GET /api/students
+
+Returns the student directory with search and filters.
+
+### POST /api/students
+
+Creates a student record.
+
+### GET /api/students/:id
+
+Returns a student profile with guardian, documents, and transfers.
+
+### PATCH /api/students/:id
+
+Updates a student.
+
+### DELETE /api/students/:id
+
+Soft-deletes a student.
+
+### POST /api/students/admission
+
+Creates a student admission and generates a registration number.
+
+### GET /api/students/:id/documents
+
+Lists student documents.
+
+### POST /api/students/:id/documents
+
+Adds a student document.
+
+### GET /api/students/:id/transfers
+
+Lists student transfers.
+
+### POST /api/students/:id/transfer
+
+Transfers a student between branches or classes.

@@ -64,6 +64,11 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `Section`
 - `Subject`
 - `Timetable`
+- `Guardian`
+- `StudentSequence`
+- `Student`
+- `StudentDocument`
+- `StudentTransfer`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
 
