@@ -160,6 +160,20 @@ The HR module stores organization-scoped employee records, attendance, leave, an
 - `SalarySlip` stores slip metadata for generated payroll.
 - `EmployeeDocument` stores uploaded employee files.
 
+## Inventory module
+
+The inventory module stores organization-scoped assets, inventory, suppliers, purchases, stock, and maintenance data:
+
+- `AssetCategory` stores asset categories.
+- `Asset` stores fixed assets and asset value data.
+- `InventoryCategory` stores consumable item categories.
+- `InventoryItem` stores inventory stock records.
+- `StockMovement` stores item movement history.
+- `Supplier` stores vendor profiles.
+- `Purchase` stores purchase headers.
+- `PurchaseItem` stores purchase line items.
+- `MaintenanceRecord` stores asset maintenance events.
+
 ### FileUpload
 
 Uploaded files metadata with server-side storage path.

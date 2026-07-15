@@ -218,4 +218,33 @@ describe('App shell', () => {
     expect(await screen.findByText(/Human Resources/i)).toBeInTheDocument();
     expect(screen.getByText(/Manage employees, attendance, leave, and payroll\./i)).toBeInTheDocument();
   });
+
+  it('renders the inventory workspace for authenticated sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Inventory User', email: 'inventory@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/inventory/categories')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ categories: [] }) });
+      if (url.includes('/api/inventory/assets')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ assets: [] }) });
+      if (url.includes('/api/inventory/items')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ items: [] }) });
+      if (url.includes('/api/inventory/suppliers')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ suppliers: [] }) });
+      if (url.includes('/api/inventory/purchases')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ purchases: [] }) });
+      if (url.includes('/api/inventory/maintenance')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ maintenance: [] }) });
+      if (url.includes('/api/inventory/reports')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ assets: [], items: [], purchases: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/inventory']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Inventory Hub/i)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /^Assets$/i })).toBeInTheDocument();
+  });
 });

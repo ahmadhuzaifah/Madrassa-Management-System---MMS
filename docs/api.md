@@ -851,3 +851,89 @@ Marks payroll as paid and creates finance transactions.
 ### GET /api/hr/payroll/:id
 
 Returns payroll details.
+
+## Inventory
+
+### GET /api/inventory/categories
+
+Lists inventory and asset categories.
+
+### POST /api/inventory/categories
+
+Creates a category.
+
+### PATCH /api/inventory/categories/:id
+
+Updates a category.
+
+### DELETE /api/inventory/categories/:id
+
+Deletes a category.
+
+### GET /api/inventory/assets
+
+Lists fixed assets.
+
+### POST /api/inventory/assets
+
+Creates a fixed asset.
+
+### GET /api/inventory/assets/:id
+
+Returns asset details.
+
+### PATCH /api/inventory/assets/:id
+
+Updates an asset.
+
+### DELETE /api/inventory/assets/:id
+
+Deletes an asset.
+
+### GET /api/inventory/items
+
+Lists inventory items.
+
+### POST /api/inventory/items
+
+Creates an inventory item.
+
+### POST /api/inventory/items/:id/stock
+
+Records a stock movement.
+
+### GET /api/inventory/suppliers
+
+Lists suppliers.
+
+### POST /api/inventory/suppliers
+
+Creates a supplier.
+
+### GET /api/inventory/purchases
+
+Lists purchases.
+
+### POST /api/inventory/purchases
+
+Creates a purchase record.
+
+### GET /api/inventory/maintenance
+
+Lists maintenance records.
+
+### POST /api/inventory/maintenance
+
+Creates a maintenance record and matching expense.
+
+### GET /api/inventory/reports/assets
+
+Returns asset report data.
+
+### GET /api/inventory/reports/stock
+
+Returns stock report data.
+
+### GET /api/inventory/reports/purchases
+
+Returns purchase report data.

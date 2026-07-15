@@ -1002,3 +1002,131 @@ model EmployeeDocument {
   employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   @@index([employeeId])
 }
+
+model AssetCategory {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  assets        Asset[]
+  @@unique([organizationId, name])
+}
+
+model Asset {
+  id            String   @id @default(cuid())
+  organizationId String
+  assetCode     String
+  categoryId    String
+  name          String
+  description   String?
+  purchaseDate  DateTime
+  purchasePrice Float
+  currentValue  Float
+  condition     String
+  location      String?
+  assignedTo    String?   @default("")
+  status        String   @default("AVAILABLE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      AssetCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  maintenance   MaintenanceRecord[]
+  @@unique([organizationId, assetCode])
+  @@index([organizationId, status])
+}
+
+model InventoryCategory {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  items         InventoryItem[]
+  @@unique([organizationId, name])
+}
+
+model InventoryItem {
+  id            String   @id @default(cuid())
+  organizationId String
+  categoryId    String
+  name          String
+  sku           String
+  quantity      Int      @default(0)
+  minimumStock  Int      @default(0)
+  unit          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      InventoryCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  movements     StockMovement[]
+  purchaseItems PurchaseItem[]
+  @@unique([organizationId, sku])
+}
+
+model StockMovement {
+  id              String   @id @default(cuid())
+  inventoryItemId  String
+  type            String
+  quantity        Int
+  reference       String?
+  createdBy       String?
+  date            DateTime @default(now())
+  item            InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Cascade)
+  @@index([inventoryItemId, date])
+}
+
+model Supplier {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  phone         String?
+  email         String?
+  address       String?
+  purchases     Purchase[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name])
+}
+
+model Purchase {
+  id            String   @id @default(cuid())
+  organizationId String
+  supplierId    String
+  invoiceNumber String
+  purchaseDate  DateTime
+  totalAmount   Float
+  paymentStatus String   @default("PENDING")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  supplier      Supplier @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  items         PurchaseItem[]
+  @@unique([organizationId, invoiceNumber])
+  @@index([organizationId, purchaseDate])
+}
+
+model PurchaseItem {
+  id            String   @id @default(cuid())
+  purchaseId    String
+  inventoryItemId String
+  quantity      Int
+  unitPrice     Float
+  purchase      Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  item          InventoryItem @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+}
+
+model MaintenanceRecord {
+  id            String   @id @default(cuid())
+  organizationId String
+  assetId       String
+  issue         String
+  cost          Float
+  date          DateTime @default(now())
+  status        String   @default("OPEN")
+  remarks       String?
+  asset         Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([assetId, date])
+}

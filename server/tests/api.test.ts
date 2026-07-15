@@ -784,4 +784,121 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.employees).toHaveLength(0);
   });
+
+  it('manages inventory assets, stock movements, purchases, maintenance, and isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Inventory Owner',
+        email: 'inventory-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Inventory Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Inventory Madrassa' } });
+    const otherOwner = await prisma.user.create({ data: { name: 'Inventory Other Owner', email: 'inventory-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Inventory Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Inventory Madrassa' } });
+    const cash = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '1000', accountName: 'Cash', accountType: 'ASSET' } });
+    const inventoryAccount = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '1200', accountName: 'Inventory', accountType: 'ASSET' } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+    const categoryRes = await request(app)
+      .post('/api/inventory/categories')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Electronics', description: 'Devices' });
+    expect(categoryRes.status).toBe(201);
+
+    const assetCategoryId = categoryRes.body.category.id;
+    const itemCategoryRes = await request(app)
+      .post('/api/inventory/categories')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Consumables', description: 'Stock items' });
+    expect(itemCategoryRes.status).toBe(201);
+    const itemCategoryId = itemCategoryRes.body.inventoryCategory.id;
+
+    const assetRes = await request(app)
+      .post('/api/inventory/assets')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        categoryId: assetCategoryId,
+        name: 'Projector',
+        purchaseDate: '2026-07-01',
+        purchasePrice: 75000,
+        currentValue: 72000,
+        condition: 'GOOD',
+        location: 'Main Hall',
+        status: 'AVAILABLE',
+      });
+    expect(assetRes.status).toBe(201);
+    expect(assetRes.body.asset.assetCode).toMatch(/^AST-/);
+
+    const itemRes = await request(app)
+      .post('/api/inventory/items')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ categoryId: itemCategoryId, name: 'Printer Paper', sku: 'PAPER-001', quantity: 100, minimumStock: 20, unit: 'ream' });
+    expect(itemRes.status).toBe(201);
+
+    const stockRes = await request(app)
+      .post(`/api/inventory/items/${itemRes.body.item.id}/stock`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ type: 'PURCHASE', quantity: 25, reference: 'PO-1' });
+    expect(stockRes.status).toBe(201);
+    expect(stockRes.body.item.quantity).toBe(125);
+
+    const supplierRes = await request(app)
+      .post('/api/inventory/suppliers')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Stationery Mart', phone: '111-2222', email: 'sales@stationery.test' });
+    expect(supplierRes.status).toBe(201);
+
+    const purchaseRes = await request(app)
+      .post('/api/inventory/purchases')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        supplierId: supplierRes.body.supplier.id,
+        invoiceNumber: 'INV-1001',
+        purchaseDate: '2026-07-03',
+        totalAmount: 2500,
+        paymentStatus: 'PAID',
+        items: [{ inventoryItemId: itemRes.body.item.id, quantity: 25, unitPrice: 100 }],
+        debitAccountId: inventoryAccount.id,
+        creditAccountId: cash.id,
+      });
+    expect(purchaseRes.status).toBe(201);
+
+    const maintenanceRes = await request(app)
+      .post('/api/inventory/maintenance')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ assetId: assetRes.body.asset.id, issue: 'Lamp replacement', cost: 1200, date: '2026-07-04', remarks: 'Replaced lamp' });
+    expect(maintenanceRes.status).toBe(201);
+
+    const assets = await request(app).get('/api/inventory/reports/assets').set('Cookie', ownerCookie);
+    expect(assets.status).toBe(200);
+    expect(assets.body.assets).toHaveLength(1);
+
+    const stock = await request(app).get('/api/inventory/reports/stock').set('Cookie', ownerCookie);
+    expect(stock.status).toBe(200);
+    expect(stock.body.items).toHaveLength(1);
+
+    const purchases = await request(app).get('/api/inventory/reports/purchases').set('Cookie', ownerCookie);
+    expect(purchases.status).toBe(200);
+    expect(purchases.body.purchases).toHaveLength(1);
+
+    const otherCookie = `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`;
+    const isolation = await request(app).get('/api/inventory/assets').set('Cookie', otherCookie);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.assets).toHaveLength(0);
+  });
 });

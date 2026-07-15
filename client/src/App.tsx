@@ -76,6 +76,15 @@ import { HrAttendancePage } from './pages/hr/HrAttendancePage';
 import { HrLeavesPage } from './pages/hr/HrLeavesPage';
 import { HrPayrollPage } from './pages/hr/HrPayrollPage';
 import { HrReportsPage } from './pages/hr/HrReportsPage';
+import { InventoryHomePage } from './pages/inventory/InventoryHomePage';
+import { InventoryAssetsPage } from './pages/inventory/InventoryAssetsPage';
+import { InventoryAssetDetailPage } from './pages/inventory/InventoryAssetDetailPage';
+import { InventoryItemsPage } from './pages/inventory/InventoryItemsPage';
+import { InventoryCategoriesPage } from './pages/inventory/InventoryCategoriesPage';
+import { InventorySuppliersPage } from './pages/inventory/InventorySuppliersPage';
+import { InventoryPurchasesPage } from './pages/inventory/InventoryPurchasesPage';
+import { InventoryMaintenancePage } from './pages/inventory/InventoryMaintenancePage';
+import { InventoryReportsPage } from './pages/inventory/InventoryReportsPage';
 
 function App() {
   return (
@@ -217,6 +226,15 @@ function App() {
           <Route path="/hr/payroll" element={<ProtectedRoute><HrPayrollPage /></ProtectedRoute>} />
           <Route path="/hr/payroll/:id" element={<ProtectedRoute><HrPayrollPage /></ProtectedRoute>} />
           <Route path="/hr/reports" element={<ProtectedRoute><HrReportsPage /></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute><InventoryHomePage /></ProtectedRoute>} />
+          <Route path="/inventory/assets" element={<ProtectedRoute><InventoryAssetsPage /></ProtectedRoute>} />
+          <Route path="/inventory/assets/:id" element={<ProtectedRoute><InventoryAssetDetailPage /></ProtectedRoute>} />
+          <Route path="/inventory/items" element={<ProtectedRoute><InventoryItemsPage /></ProtectedRoute>} />
+          <Route path="/inventory/categories" element={<ProtectedRoute><InventoryCategoriesPage /></ProtectedRoute>} />
+          <Route path="/inventory/suppliers" element={<ProtectedRoute><InventorySuppliersPage /></ProtectedRoute>} />
+          <Route path="/inventory/purchases" element={<ProtectedRoute><InventoryPurchasesPage /></ProtectedRoute>} />
+          <Route path="/inventory/maintenance" element={<ProtectedRoute><InventoryMaintenancePage /></ProtectedRoute>} />
+          <Route path="/inventory/reports" element={<ProtectedRoute><InventoryReportsPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

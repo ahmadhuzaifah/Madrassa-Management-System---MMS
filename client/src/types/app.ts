@@ -162,6 +162,12 @@ export type Employee = {
 export type EmployeeAttendance = { id: string; employeeId: string; attendanceDate: string; checkIn?: string | null; checkOut?: string | null; status: string; remarks?: string | null; employee?: Employee };
 export type HrLeave = { id: string; employeeId: string; leaveType: string; startDate: string; endDate: string; reason: string; status: string; approvedBy?: string | null; employee?: Employee };
 export type Payroll = { id: string; employeeId: string; month: number; year: number; basicSalary: number; allowances: number; deductions: number; overtime: number; bonus: number; netSalary: number; paymentStatus: string; paymentMethod?: string | null; paymentDate?: string | null; employee?: Employee; salarySlip?: { id: string; slipNumber: string; pdfPath?: string | null } | null };
+export type InventoryCategory = { id: string; name: string; description?: string | null };
+export type Asset = { id: string; assetCode: string; name: string; description?: string | null; purchaseDate: string; purchasePrice: number; currentValue: number; condition: string; location?: string | null; assignedTo?: string | null; status: string; category?: InventoryCategory; maintenance?: Array<{ id: string; issue: string; cost: number; date: string; status: string }> };
+export type InventoryItem = { id: string; name: string; sku: string; quantity: number; minimumStock: number; unit: string; description?: string | null; category?: InventoryCategory; movements?: Array<{ id: string; type: string; quantity: number; reference?: string | null; date: string }> };
+export type Supplier = { id: string; name: string; phone?: string | null; email?: string | null; address?: string | null };
+export type Purchase = { id: string; invoiceNumber: string; purchaseDate: string; totalAmount: number; paymentStatus: string; supplier?: Supplier; items?: Array<{ id: string; quantity: number; unitPrice: number; item?: InventoryItem }> };
+export type MaintenanceRecord = { id: string; assetId: string; issue: string; cost: number; date: string; status: string; remarks?: string | null; asset?: Asset };
 export type Student = {
   id: string;
   registrationNumber: string;
