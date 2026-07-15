@@ -1,0 +1,7 @@
+import { useState } from 'react';
+import { api } from '../../services/api';
+
+export function ExamCreatePage() {
+  const [form, setForm] = useState({ name: '', examType: 'ANNUAL', startDate: '', endDate: '', branchId: '', academicYearId: '' });
+  return <section className="panel"><h3>Create exam</h3><div className="dashboard-grid"><input className="input" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /><select className="input" value={form.examType} onChange={(e) => setForm({ ...form, examType: e.target.value })}><option value="MONTHLY">Monthly</option><option value="QUARTERLY">Quarterly</option><option value="HALF_YEARLY">Half-yearly</option><option value="ANNUAL">Annual</option><option value="FINAL">Final</option></select><input className="input" type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /><input className="input" type="date" value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /><input className="input" placeholder="Branch ID" value={form.branchId} onChange={(e) => setForm({ ...form, branchId: e.target.value })} /><input className="input" placeholder="Academic year ID" value={form.academicYearId} onChange={(e) => setForm({ ...form, academicYearId: e.target.value })} /><button className="primary-button" onClick={async () => { await api.post('/api/exams', form); }}>Save exam</button></div></section>;
+}

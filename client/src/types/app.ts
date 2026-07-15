@@ -120,6 +120,10 @@ export type FeeInvoice = {
   status: 'PAID' | 'PARTIAL' | 'UNPAID' | 'OVERDUE' | string;
   studentId: string;
 };
+export type Exam = { id: string; name: string; examType: 'MONTHLY' | 'QUARTERLY' | 'HALF_YEARLY' | 'ANNUAL' | 'FINAL'; startDate: string; endDate: string; status: string; branchId?: string | null; academicYearId?: string | null };
+export type ExamSubject = { id: string; subjectId: string; totalMarks: number; passingMarks: number };
+export type ExamResult = { id: string; examId: string; studentId: string; subjectId: string; obtainedMarks: number; grade: string; remarks?: string | null; student?: Student };
+export type ResultCard = { id: string; studentId: string; examId: string; totalMarks: number; obtainedMarks: number; percentage: number; grade: string; position?: number | null; generatedAt?: string };
 export type Student = {
   id: string;
   registrationNumber: string;
@@ -152,4 +156,6 @@ export type Student = {
   feeAssignments?: FeeAssignment[];
   feePayments?: FeePayment[];
   feeInvoices?: FeeInvoice[];
+  examResults?: ExamResult[];
+  resultCards?: ResultCard[];
 };

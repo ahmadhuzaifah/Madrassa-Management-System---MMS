@@ -77,6 +77,11 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `FeePayment`
 - `FeeInvoice`
 - `Discount`
+- `Exam`
+- `ExamSubject`
+- `StudentExamResult`
+- `GradeScale`
+- `ResultCard`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
 
@@ -101,6 +106,18 @@ The fee module adds fee structures, student fee assignments, payments, invoices,
 - `Discount` records approved reductions for a student.
 
 The fee tables are workspace-scoped and are linked back to the student and madrassa records for isolation and reporting.
+
+## Exams and results module
+
+The exams module adds workspace-scoped exams, exam subject mappings, marks, grade scales, and result cards:
+
+- `Exam` stores the exam schedule and status.
+- `ExamSubject` stores total and passing marks per subject.
+- `StudentExamResult` stores marks and grade per student/subject/exam.
+- `GradeScale` stores percentage-to-grade mappings.
+- `ResultCard` stores calculated totals, percentage, grade, and position.
+
+Result cards are generated per student and exam after marks entry so they can be rendered and printed later.
 
 ### FileUpload
 

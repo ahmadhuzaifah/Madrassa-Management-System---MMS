@@ -607,3 +607,53 @@ Returns total collection and payment rows.
 ### GET /api/fees/reports/outstanding
 
 Returns outstanding dues per student.
+
+## Exams
+
+### GET /api/exams
+
+Lists exams for the current workspace.
+
+### POST /api/exams
+
+Creates an exam.
+
+### PATCH /api/exams/:id
+
+Updates an exam.
+
+### DELETE /api/exams/:id
+
+Deletes an exam.
+
+### GET /api/exams/:id/subjects
+
+Lists subjects attached to an exam.
+
+### POST /api/exams/:id/subjects
+
+Adds a subject with total and passing marks.
+
+### GET /api/exams/:id/results
+
+Lists results for an exam.
+
+### POST /api/exams/:id/results
+
+Saves marks and generates result cards.
+
+### GET /api/exams/student/:id
+
+Returns a student's exam history and cards.
+
+### GET /api/exams/result-card/:studentId/:examId
+
+Returns printable result card data.
+
+### GET /api/exams/reports/class
+
+Returns class result cards for an exam.
+
+### GET /api/exams/reports/subject
+
+Returns subject performance results for an exam.

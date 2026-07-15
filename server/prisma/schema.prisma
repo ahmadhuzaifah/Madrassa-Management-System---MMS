@@ -490,6 +490,8 @@ model Student {
   feePayments       FeePayment[]
   feeInvoices       FeeInvoice[]
   discounts         Discount[]
+  examResults       StudentExamResult[]
+  resultCards       ResultCard[]
   @@index([madrassaId, status])
 }
 
@@ -658,4 +660,79 @@ model Discount {
   updatedAt     DateTime @updatedAt
   student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   @@index([studentId])
+}
+
+model Exam {
+  id            String   @id @default(cuid())
+  organizationId String
+  madrassaId    String
+  branchId      String?
+  academicYearId String?
+  name          String
+  examType      String
+  startDate     DateTime
+  endDate       DateTime
+  status        String   @default("DRAFT")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  subjects      ExamSubject[]
+  results       StudentExamResult[]
+  resultCards   ResultCard[]
+  @@index([organizationId, madrassaId])
+}
+
+model ExamSubject {
+  id            String   @id @default(cuid())
+  examId        String
+  subjectId     String
+  totalMarks    Int
+  passingMarks  Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  @@index([examId])
+}
+
+model StudentExamResult {
+  id            String   @id @default(cuid())
+  examId        String
+  studentId     String
+  subjectId     String
+  obtainedMarks Int
+  grade         String
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  @@unique([examId, studentId, subjectId])
+  @@index([studentId, examId])
+}
+
+model GradeScale {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  minPercentage Float
+  maxPercentage Float
+  grade         String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId])
+}
+
+model ResultCard {
+  id            String   @id @default(cuid())
+  studentId     String
+  examId        String
+  totalMarks    Int
+  obtainedMarks Int
+  percentage    Float
+  grade         String
+  position      Int?
+  generatedAt   DateTime @default(now())
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  exam          Exam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  @@unique([studentId, examId])
 }

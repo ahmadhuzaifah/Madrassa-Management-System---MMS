@@ -50,6 +50,12 @@ import { FeeStructuresPage } from './pages/fees/FeeStructuresPage';
 import { FeeAssignmentsPage } from './pages/fees/FeeAssignmentsPage';
 import { FeePaymentsPage } from './pages/fees/FeePaymentsPage';
 import { FeeReportsPage } from './pages/fees/FeeReportsPage';
+import { ExamsPage } from './pages/exams/ExamsPage';
+import { ExamCreatePage } from './pages/exams/ExamCreatePage';
+import { ExamDetailPage } from './pages/exams/ExamDetailPage';
+import { ExamMarksEntryPage } from './pages/exams/ExamMarksEntryPage';
+import { ExamResultsPage } from './pages/exams/ExamResultsPage';
+import { ExamResultCardPage } from './pages/exams/ExamResultCardPage';
 
 function App() {
   return (
@@ -163,6 +169,12 @@ function App() {
           <Route path="/fees/assignments" element={<ProtectedRoute><FeeAssignmentsPage /></ProtectedRoute>} />
           <Route path="/fees/payments" element={<ProtectedRoute><FeePaymentsPage /></ProtectedRoute>} />
           <Route path="/fees/reports" element={<ProtectedRoute><FeeReportsPage /></ProtectedRoute>} />
+          <Route path="/exams" element={<ProtectedRoute><ExamsPage /></ProtectedRoute>} />
+          <Route path="/exams/create" element={<ProtectedRoute><ExamCreatePage /></ProtectedRoute>} />
+          <Route path="/exams/:id" element={<ProtectedRoute><ExamDetailPage /></ProtectedRoute>} />
+          <Route path="/exams/marks-entry" element={<ProtectedRoute><ExamMarksEntryPage /></ProtectedRoute>} />
+          <Route path="/exams/results" element={<ProtectedRoute><ExamResultsPage /></ProtectedRoute>} />
+          <Route path="/exams/result-card" element={<ProtectedRoute><ExamResultCardPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

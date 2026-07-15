@@ -477,4 +477,82 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.structures).toHaveLength(0);
   });
+
+  it('creates exams, enters marks, and generates result cards', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Exam Owner',
+        email: 'exam-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Exam Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Exam Madrassa' } });
+    const branch = await prisma.branch.create({ data: { madrassaId: madrassa.id, name: 'Exam Branch' } });
+    const academicYear = await prisma.academicYear.create({ data: { madrassaId: madrassa.id, name: '2026', startDate: new Date('2026-01-01'), endDate: new Date('2026-12-31') } });
+    const department = await prisma.department.create({ data: { madrassaId: madrassa.id, name: 'School' } });
+    const program = await prisma.program.create({ data: { madrassaId: madrassa.id, departmentId: department.id, name: 'Grade 1' } });
+    const classRoom = await prisma.classRoom.create({ data: { madrassaId: madrassa.id, programId: program.id, academicYearId: academicYear.id, branchId: branch.id, name: 'Class A' } });
+    const subject = await prisma.subject.create({ data: { madrassaId: madrassa.id, programId: program.id, classRoomId: classRoom.id, name: 'Quran', code: 'QRN' } });
+    const student1 = await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-EXAM-${Date.now()}-1`, fullName: 'Exam Student One', branchId: branch.id, programId: program.id, classRoomId: classRoom.id, academicYearId: academicYear.id, status: 'ACTIVE', admissionDate: new Date() } });
+    const student2 = await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-EXAM-${Date.now()}-2`, fullName: 'Exam Student Two', branchId: branch.id, programId: program.id, classRoomId: classRoom.id, academicYearId: academicYear.id, status: 'ACTIVE', admissionDate: new Date() } });
+    await prisma.gradeScale.create({ data: { organizationId: organization.id, name: 'Default', minPercentage: 90, maxPercentage: 100, grade: 'A+', description: 'Top' } });
+    await prisma.gradeScale.create({ data: { organizationId: organization.id, name: 'A', minPercentage: 80, maxPercentage: 89.99, grade: 'A' } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const examResponse = await request(app)
+      .post('/api/exams')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Annual Examination 2026', examType: 'ANNUAL', branchId: branch.id, academicYearId: academicYear.id, startDate: '2026-07-01', endDate: '2026-07-10' });
+
+    expect(examResponse.status).toBe(201);
+
+    const subjectResponse = await request(app)
+      .post(`/api/exams/${examResponse.body.exam.id}/subjects`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ subjectId: subject.id, totalMarks: 100, passingMarks: 40 });
+
+    expect(subjectResponse.status).toBe(201);
+
+    const marksResponse = await request(app)
+      .post(`/api/exams/${examResponse.body.exam.id}/results`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        results: [
+          { studentId: student1.id, subjectId: subject.id, obtainedMarks: 92, remarks: 'Excellent' },
+          { studentId: student2.id, subjectId: subject.id, obtainedMarks: 76, remarks: 'Good' },
+        ],
+      });
+
+    expect(marksResponse.status).toBe(201);
+
+    const resultCard = await request(app).get(`/api/exams/result-card/${student1.id}/${examResponse.body.exam.id}`).set('Cookie', ownerCookie);
+    expect(resultCard.status).toBe(200);
+    expect(resultCard.body.card.grade).toBe('A+');
+    expect(resultCard.body.results).toHaveLength(1);
+
+    const examResults = await request(app).get(`/api/exams/student/${student1.id}`).set('Cookie', ownerCookie);
+    expect(examResults.status).toBe(200);
+    expect(examResults.body.cards).toHaveLength(1);
+
+    const classReport = await request(app).get(`/api/exams/reports/class?examId=${examResponse.body.exam.id}`).set('Cookie', ownerCookie);
+    expect(classReport.status).toBe(200);
+    expect(classReport.body.cards).toHaveLength(2);
+
+    const otherOwner = await prisma.user.create({ data: { name: 'Exam Other Owner', email: 'exam-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Exam Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Exam Madrassa' } });
+    const otherCookie = `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`;
+    const isolation = await request(app).get('/api/exams').set('Cookie', otherCookie);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.exams).toHaveLength(0);
+  });
 });
