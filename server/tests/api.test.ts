@@ -624,4 +624,164 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.templates).toHaveLength(0);
   });
+
+  it('posts finance transactions, records donations and expenses, and preserves isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Finance Owner',
+        email: 'finance-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Finance Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Finance Madrassa' } });
+    const otherOwner = await prisma.user.create({ data: { name: 'Finance Other Owner', email: 'finance-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Finance Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Finance Madrassa' } });
+    const cash = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '1000', accountName: 'Cash', accountType: 'ASSET' } });
+    const income = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '4000', accountName: 'Donation Income', accountType: 'INCOME' } });
+    const expenseAccount = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '5000', accountName: 'Maintenance', accountType: 'EXPENSE' } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+    const financeAccount = await request(app)
+      .post('/api/finance/accounts')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ accountCode: '1100', accountName: 'Bank', accountType: 'ASSET', openingBalance: 0 });
+    expect(financeAccount.status).toBe(201);
+
+    const transaction = await request(app)
+      .post('/api/finance/transactions')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        description: 'Donation received',
+        transactionDate: '2026-07-01',
+        lines: [
+          { accountId: cash.id, debit: 1000, credit: 0 },
+          { accountId: income.id, debit: 0, credit: 1000 },
+        ],
+      });
+    expect(transaction.status).toBe(201);
+
+    const donation = await request(app)
+      .post('/api/finance/donations')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ donorName: 'Ali', donationType: 'SADAQAH', amount: 500, paymentMethod: 'CASH', date: '2026-07-01' });
+    expect(donation.status).toBe(201);
+    expect(donation.body.receiptNumber).toMatch(/^DON-/);
+
+    const expense = await request(app)
+      .post('/api/finance/expenses')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ categoryName: 'Maintenance', amount: 250, paymentMethod: 'CASH', paidTo: 'Vendor', expenseDate: '2026-07-02' });
+    expect(expense.status).toBe(201);
+
+    const ledger = await request(app).get('/api/finance/reports/ledger').set('Cookie', ownerCookie);
+    expect(ledger.status).toBe(200);
+    expect(ledger.body.lines.length).toBeGreaterThanOrEqual(2);
+
+    const trial = await request(app).get('/api/finance/reports/trial-balance').set('Cookie', ownerCookie);
+    expect(trial.status).toBe(200);
+    expect(trial.body.rows.length).toBeGreaterThanOrEqual(3);
+
+    const cashbook = await request(app).get('/api/finance/reports/cashbook').set('Cookie', ownerCookie);
+    expect(cashbook.status).toBe(200);
+    expect(cashbook.body.transactions.length).toBeGreaterThanOrEqual(1);
+
+    const otherCookie = `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`;
+    const isolation = await request(app).get('/api/finance/accounts').set('Cookie', otherCookie);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.accounts).toHaveLength(0);
+  });
+
+  it('manages HR employees, attendance, leave, and payroll with finance integration', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'HR Owner',
+        email: 'hr-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'HR Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'HR Madrassa' } });
+    const otherOwner = await prisma.user.create({ data: { name: 'HR Other Owner', email: 'hr-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other HR Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other HR Madrassa' } });
+    const department = await prisma.hrDepartment.create({ data: { organizationId: organization.id, name: 'Operations' } });
+    const designation = await prisma.hrDesignation.create({ data: { organizationId: organization.id, departmentId: department.id, title: 'Coordinator' } });
+    const cash = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '1000', accountName: 'Cash', accountType: 'ASSET' } });
+    const salaryExpense = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '6000', accountName: 'Salary Expense', accountType: 'EXPENSE' } });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+    const departmentRes = await request(app).post('/api/hr/departments').set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`]).set('X-CSRF-Token', csrfToken).send({ name: 'Administration' });
+    expect(departmentRes.status).toBe(201);
+
+    const employeeRes = await request(app)
+      .post('/api/hr/employees')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        firstName: 'Ali',
+        lastName: 'Khan',
+        employmentType: 'FULL_TIME',
+        joiningDate: '2026-07-01',
+        basicSalary: 40000,
+        departmentId: department.id,
+        designationId: designation.id,
+      });
+    expect(employeeRes.status).toBe(201);
+    expect(employeeRes.body.employee.employeeNumber).toMatch(/^EMP-/);
+
+    const employeeId = employeeRes.body.employee.id;
+    const attendanceRes = await request(app)
+      .post('/api/hr/attendance')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ employeeId, attendanceDate: '2026-07-01', status: 'PRESENT' });
+    expect(attendanceRes.status).toBe(201);
+
+    const leaveRes = await request(app)
+      .post('/api/hr/leaves')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ employeeId, leaveType: 'Casual', startDate: '2026-07-10', endDate: '2026-07-11', reason: 'Family event' });
+    expect(leaveRes.status).toBe(201);
+
+    const payrollRes = await request(app)
+      .post('/api/hr/payroll/generate')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ employeeId, month: 7, year: 2026, allowances: 5000, deductions: 1000, overtime: 2000, bonus: 1000, paymentMethod: 'CASH' });
+    expect(payrollRes.status).toBe(201);
+
+    const payRes = await request(app)
+      .post('/api/hr/payroll/pay')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ payrollId: payrollRes.body.payroll.id, paymentMethod: 'CASH', cashAccountId: cash.id, salaryExpenseAccountId: salaryExpense.id });
+    expect(payRes.status).toBe(200);
+
+    const attendance = await request(app).get('/api/hr/attendance').set('Cookie', ownerCookie);
+    expect(attendance.status).toBe(200);
+    expect(attendance.body.attendance).toHaveLength(1);
+
+    const payroll = await request(app).get('/api/hr/payroll').set('Cookie', ownerCookie);
+    expect(payroll.status).toBe(200);
+    expect(payroll.body.payroll).toHaveLength(1);
+
+    const isolation = await request(app).get('/api/hr/employees').set('Cookie', `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.employees).toHaveLength(0);
+  });
 });

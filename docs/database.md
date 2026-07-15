@@ -85,6 +85,12 @@ The madrassa ERP layer adds these workspace-scoped tables:
 - `CertificateTemplate`
 - `Certificate`
 - `CertificateVerification`
+- `Account`
+- `Transaction`
+- `TransactionLine`
+- `ExpenseCategory`
+- `Expense`
+- `Donation`
 
 These entities are linked to the owning organization and use soft-delete flags where appropriate to preserve historical records.
 
@@ -129,6 +135,30 @@ The certificates module stores templates, issued certificates, and public verifi
 - `CertificateTemplate` stores reusable layout text and certificate type.
 - `Certificate` stores issued certificates with a sequential certificate number.
 - `CertificateVerification` stores the public verification code and verification metadata.
+
+## Finance module
+
+The finance module adds double-entry bookkeeping and operational financial tracking:
+
+- `Account` stores chart-of-account entries and balances.
+- `Transaction` stores balanced vouchers.
+- `TransactionLine` stores debit and credit lines for each transaction.
+- `ExpenseCategory` stores expense classifications.
+- `Expense` stores posted expenses.
+- `Donation` stores donations and receipt numbers.
+
+## HR module
+
+The HR module stores organization-scoped employee records, attendance, leave, and payroll data:
+
+- `HrDepartment` stores HR departments.
+- `HrDesignation` stores job titles per department.
+- `Employee` stores employee profiles and salary details.
+- `EmployeeAttendance` stores daily attendance.
+- `HrLeaveRequest` stores leave requests and approvals.
+- `Payroll` stores monthly salary calculations.
+- `SalarySlip` stores slip metadata for generated payroll.
+- `EmployeeDocument` stores uploaded employee files.
 
 ### FileUpload
 

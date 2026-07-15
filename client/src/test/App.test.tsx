@@ -168,4 +168,54 @@ describe('App shell', () => {
     expect(await screen.findByText(/Certificates/i)).toBeInTheDocument();
     expect(screen.getByText(/Templates/i)).toBeInTheDocument();
   });
+
+  it('renders the finance workspace for authenticated sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Finance User', email: 'finance@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/finance']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Finance/i)).toBeInTheDocument();
+    expect(screen.getByText(/Accounts/i)).toBeInTheDocument();
+  });
+
+  it('renders the HR workspace for authenticated sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'HR User', email: 'hr@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/hr/departments')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ departments: [] }) });
+      if (url.includes('/api/hr/designations')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ designations: [] }) });
+      if (url.includes('/api/hr/employees')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ employees: [] }) });
+      if (url.includes('/api/hr/attendance')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ attendance: [] }) });
+      if (url.includes('/api/hr/leaves')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ leaves: [] }) });
+      if (url.includes('/api/hr/payroll')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ payroll: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/hr']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Human Resources/i)).toBeInTheDocument();
+    expect(screen.getByText(/Manage employees, attendance, leave, and payroll\./i)).toBeInTheDocument();
+  });
 });

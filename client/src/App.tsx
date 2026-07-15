@@ -61,6 +61,21 @@ import { CertificateTemplatesPage } from './pages/certificates/CertificateTempla
 import { CertificateGeneratePage } from './pages/certificates/CertificateGeneratePage';
 import { CertificateDetailPage } from './pages/certificates/CertificateDetailPage';
 import { CertificateVerifyPage } from './pages/certificates/CertificateVerifyPage';
+import { FinancePage } from './pages/finance/FinancePage';
+import { FinanceAccountsPage } from './pages/finance/FinanceAccountsPage';
+import { FinanceTransactionsPage } from './pages/finance/FinanceTransactionsPage';
+import { FinanceExpensesPage } from './pages/finance/FinanceExpensesPage';
+import { FinanceDonationsPage } from './pages/finance/FinanceDonationsPage';
+import { FinanceReportsPage } from './pages/finance/FinanceReportsPage';
+import { HrHomePage } from './pages/hr/HrHomePage';
+import { HrEmployeesPage } from './pages/hr/HrEmployeesPage';
+import { HrEmployeeDetailPage } from './pages/hr/HrEmployeeDetailPage';
+import { HrDepartmentsPage } from './pages/hr/HrDepartmentsPage';
+import { HrDesignationsPage } from './pages/hr/HrDesignationsPage';
+import { HrAttendancePage } from './pages/hr/HrAttendancePage';
+import { HrLeavesPage } from './pages/hr/HrLeavesPage';
+import { HrPayrollPage } from './pages/hr/HrPayrollPage';
+import { HrReportsPage } from './pages/hr/HrReportsPage';
 
 function App() {
   return (
@@ -185,6 +200,23 @@ function App() {
           <Route path="/certificates/generate" element={<ProtectedRoute><CertificateGeneratePage /></ProtectedRoute>} />
           <Route path="/certificates/:id" element={<ProtectedRoute><CertificateDetailPage /></ProtectedRoute>} />
           <Route path="/verify-certificate/:code" element={<CertificateVerifyPage />} />
+          <Route path="/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
+          <Route path="/finance/accounts" element={<ProtectedRoute><FinanceAccountsPage /></ProtectedRoute>} />
+          <Route path="/finance/transactions" element={<ProtectedRoute><FinanceTransactionsPage /></ProtectedRoute>} />
+          <Route path="/finance/expenses" element={<ProtectedRoute><FinanceExpensesPage /></ProtectedRoute>} />
+          <Route path="/finance/donations" element={<ProtectedRoute><FinanceDonationsPage /></ProtectedRoute>} />
+          <Route path="/finance/reports" element={<ProtectedRoute><FinanceReportsPage /></ProtectedRoute>} />
+          <Route path="/hr" element={<ProtectedRoute><HrHomePage /></ProtectedRoute>} />
+          <Route path="/hr/employees" element={<ProtectedRoute><HrEmployeesPage /></ProtectedRoute>} />
+          <Route path="/hr/employees/new" element={<ProtectedRoute><HrEmployeeDetailPage /></ProtectedRoute>} />
+          <Route path="/hr/employees/:id" element={<ProtectedRoute><HrEmployeeDetailPage /></ProtectedRoute>} />
+          <Route path="/hr/departments" element={<ProtectedRoute><HrDepartmentsPage /></ProtectedRoute>} />
+          <Route path="/hr/designations" element={<ProtectedRoute><HrDesignationsPage /></ProtectedRoute>} />
+          <Route path="/hr/attendance" element={<ProtectedRoute><HrAttendancePage /></ProtectedRoute>} />
+          <Route path="/hr/leaves" element={<ProtectedRoute><HrLeavesPage /></ProtectedRoute>} />
+          <Route path="/hr/payroll" element={<ProtectedRoute><HrPayrollPage /></ProtectedRoute>} />
+          <Route path="/hr/payroll/:id" element={<ProtectedRoute><HrPayrollPage /></ProtectedRoute>} />
+          <Route path="/hr/reports" element={<ProtectedRoute><HrReportsPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

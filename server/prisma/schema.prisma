@@ -777,3 +777,228 @@ model CertificateVerification {
   ipAddress       String?
   certificate     Certificate @relation(fields: [certificateId], references: [id], onDelete: Cascade)
 }
+
+model Account {
+  id              String   @id @default(cuid())
+  organizationId  String
+  accountCode     String
+  accountName     String
+  accountType     String
+  parentAccountId String?
+  openingBalance  Float    @default(0)
+  currentBalance  Float    @default(0)
+  status          String   @default("ACTIVE")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  parentAccount   Account? @relation("AccountToAccount", fields: [parentAccountId], references: [id], onDelete: SetNull)
+  childAccounts   Account[] @relation("AccountToAccount")
+  lines           TransactionLine[]
+  @@unique([organizationId, accountCode])
+}
+
+model Transaction {
+  id              String   @id @default(cuid())
+  organizationId  String
+  voucherNumber   String   @unique
+  transactionDate  DateTime
+  description     String
+  totalAmount     Float
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  lines           TransactionLine[]
+  @@index([organizationId, transactionDate])
+}
+
+model TransactionLine {
+  id            String   @id @default(cuid())
+  transactionId String
+  accountId     String
+  debit         Float    @default(0)
+  credit        Float    @default(0)
+  remarks       String?
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  account       Account  @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  @@index([transactionId])
+}
+
+model ExpenseCategory {
+  id             String   @id @default(cuid())
+  organizationId  String
+  name           String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expenses       Expense[]
+  @@unique([organizationId, name])
+}
+
+model Expense {
+  id            String   @id @default(cuid())
+  organizationId String
+  categoryId    String
+  amount        Float
+  paymentMethod String
+  paidTo        String
+  invoiceNumber String?
+  expenseDate   DateTime
+  remarks       String?
+  status        String   @default("POSTED")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      ExpenseCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  @@index([organizationId, expenseDate])
+}
+
+model Donation {
+  id             String   @id @default(cuid())
+  organizationId String
+  donorName     String
+  phone         String?
+  email         String?
+  donationType  String
+  amount        Float
+  paymentMethod String
+  receiptNumber String   @unique
+  purpose       String?
+  date          DateTime
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId, date])
+}
+
+model HrDepartment {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  designations  HrDesignation[]
+  employees     Employee[]
+  @@unique([organizationId, name])
+}
+
+model HrDesignation {
+  id            String   @id @default(cuid())
+  organizationId String
+  departmentId  String
+  title         String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  department    HrDepartment @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  employees     Employee[]
+  @@unique([organizationId, departmentId, title])
+}
+
+model Employee {
+  id              String   @id @default(cuid())
+  organizationId   String
+  employeeNumber   String
+  firstName        String
+  lastName         String
+  fatherName       String?
+  gender           String?
+  dob              DateTime?
+  cnic             String?
+  phone            String?
+  email            String?
+  address          String?
+  photo            String?
+  departmentId     String?
+  designationId    String?
+  employmentType   String
+  joiningDate      DateTime
+  contractEndDate  DateTime?
+  status           String   @default("ACTIVE")
+  qualification    String?
+  experience       String?
+  emergencyContact String?
+  bankName         String?
+  accountNumber    String?
+  basicSalary      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  department       HrDepartment?  @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  designation      HrDesignation? @relation(fields: [designationId], references: [id], onDelete: SetNull)
+  attendance       EmployeeAttendance[]
+  leaveRequests    HrLeaveRequest[]
+  payrolls         Payroll[]
+  documents        EmployeeDocument[]
+  @@unique([organizationId, employeeNumber])
+  @@index([organizationId, status])
+}
+
+model EmployeeAttendance {
+  id            String   @id @default(cuid())
+  employeeId     String
+  attendanceDate DateTime
+  checkIn        String?
+  checkOut       String?
+  status        String
+  remarks       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@unique([employeeId, attendanceDate])
+}
+
+model HrLeaveRequest {
+  id            String   @id @default(cuid())
+  organizationId String
+  employeeId    String
+  leaveType     String
+  startDate     DateTime
+  endDate       DateTime
+  reason        String
+  status        String   @default("PENDING")
+  approvedBy    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([employeeId, status])
+}
+
+model Payroll {
+  id            String   @id @default(cuid())
+  organizationId String
+  employeeId    String
+  month         Int
+  year          Int
+  basicSalary   Int
+  allowances    Int      @default(0)
+  deductions    Int      @default(0)
+  overtime      Int      @default(0)
+  bonus         Int      @default(0)
+  netSalary     Int
+  paymentStatus String   @default("PENDING")
+  paymentMethod String?
+  paymentDate   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  salarySlip    SalarySlip?
+  @@unique([employeeId, month, year])
+}
+
+model SalarySlip {
+  id            String   @id @default(cuid())
+  payrollId     String   @unique
+  slipNumber    String   @unique
+  pdfPath       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  payroll       Payroll  @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+}
+
+model EmployeeDocument {
+  id            String   @id @default(cuid())
+  organizationId String
+  employeeId    String
+  title         String
+  filePath      String
+  uploadedAt    DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  @@index([employeeId])
+}

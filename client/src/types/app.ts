@@ -126,6 +126,42 @@ export type ExamResult = { id: string; examId: string; studentId: string; subjec
 export type ResultCard = { id: string; studentId: string; examId: string; totalMarks: number; obtainedMarks: number; percentage: number; grade: string; position?: number | null; generatedAt?: string };
 export type CertificateTemplate = { id: string; name: string; type: string; templateContent: string };
 export type Certificate = { id: string; certificateNumber: string; issueDate: string; title: string; description?: string | null; issuedBy?: string | null; status: string; studentId: string; template?: CertificateTemplate | null; verification?: { verificationCode: string; verifiedAt?: string | null; ipAddress?: string | null } | null };
+export type FinanceAccount = { id: string; accountCode: string; accountName: string; accountType: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'INCOME' | 'EXPENSE'; openingBalance: number; currentBalance: number; status: string };
+export type FinanceTransactionLine = { id: string; accountId: string; debit: number; credit: number; remarks?: string | null; account?: FinanceAccount };
+export type FinanceTransaction = { id: string; voucherNumber: string; transactionDate: string; description: string; totalAmount: number; lines?: FinanceTransactionLine[] };
+export type FinanceExpense = { id: string; amount: number; paymentMethod: 'CASH' | 'BANK' | 'ONLINE'; paidTo: string; invoiceNumber?: string | null; expenseDate: string; remarks?: string | null; category?: { id: string; name: string } };
+export type FinanceDonation = { id: string; donorName: string; phone?: string | null; email?: string | null; donationType: 'ZAKAT' | 'SADAQAH' | 'LILLAH' | 'GENERAL' | 'FITRANA' | 'QURBANI' | 'SPONSORSHIP'; amount: number; paymentMethod: 'CASH' | 'BANK' | 'ONLINE'; receiptNumber: string; purpose?: string | null; date: string };
+export type HrDepartment = { id: string; name: string; description?: string | null };
+export type HrDesignation = { id: string; title: string; description?: string | null; department?: HrDepartment };
+export type Employee = {
+  id: string;
+  employeeNumber: string;
+  firstName: string;
+  lastName: string;
+  fatherName?: string | null;
+  gender?: string | null;
+  dob?: string | null;
+  cnic?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  address?: string | null;
+  photo?: string | null;
+  employmentType: string;
+  joiningDate: string;
+  contractEndDate?: string | null;
+  status: string;
+  qualification?: string | null;
+  experience?: string | null;
+  emergencyContact?: string | null;
+  bankName?: string | null;
+  accountNumber?: string | null;
+  basicSalary: number;
+  department?: HrDepartment | null;
+  designation?: HrDesignation | null;
+};
+export type EmployeeAttendance = { id: string; employeeId: string; attendanceDate: string; checkIn?: string | null; checkOut?: string | null; status: string; remarks?: string | null; employee?: Employee };
+export type HrLeave = { id: string; employeeId: string; leaveType: string; startDate: string; endDate: string; reason: string; status: string; approvedBy?: string | null; employee?: Employee };
+export type Payroll = { id: string; employeeId: string; month: number; year: number; basicSalary: number; allowances: number; deductions: number; overtime: number; bonus: number; netSalary: number; paymentStatus: string; paymentMethod?: string | null; paymentDate?: string | null; employee?: Employee; salarySlip?: { id: string; slipNumber: string; pdfPath?: string | null } | null };
 export type Student = {
   id: string;
   registrationNumber: string;
@@ -161,4 +197,5 @@ export type Student = {
   examResults?: ExamResult[];
   resultCards?: ResultCard[];
   certificates?: Certificate[];
+  financeAccounts?: FinanceAccount[];
 };

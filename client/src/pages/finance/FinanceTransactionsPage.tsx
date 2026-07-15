@@ -1,0 +1,13 @@
+import { useEffect, useState } from 'react';
+import { api } from '../../services/api';
+import type { FinanceAccount, FinanceTransaction } from '../../types/app';
+export function FinanceTransactionsPage() {
+  const [transactions, setTransactions] = useState<FinanceTransaction[]>([]);
+  const [accounts, setAccounts] = useState<FinanceAccount[]>([]);
+  const [description, setDescription] = useState('');
+  const [line1, setLine1] = useState({ accountId: '', debit: 0, credit: 0 });
+  const [line2, setLine2] = useState({ accountId: '', debit: 0, credit: 0 });
+  const load = async () => { setTransactions((await api.get<{ transactions: FinanceTransaction[] }>('/api/finance/transactions')).transactions); setAccounts((await api.get<{ accounts: FinanceAccount[] }>('/api/finance/accounts')).accounts); };
+  useEffect(() => { void load(); }, []);
+  return <section className="panel"><h3>Transactions</h3><input className="input" placeholder="Description" value={description} onChange={(e) => setDescription(e.target.value)} /><div className="dashboard-grid"><select className="input" value={line1.accountId} onChange={(e) => setLine1({ ...line1, accountId: e.target.value })}><option value="">Debit account</option>{accounts.map((account) => <option key={account.id} value={account.id}>{account.accountName}</option>)}</select><input className="input" type="number" value={line1.debit} onChange={(e) => setLine1({ ...line1, debit: Number(e.target.value) })} /><input className="input" type="number" value={line1.credit} onChange={(e) => setLine1({ ...line1, credit: Number(e.target.value) })} /><select className="input" value={line2.accountId} onChange={(e) => setLine2({ ...line2, accountId: e.target.value })}><option value="">Credit account</option>{accounts.map((account) => <option key={account.id} value={account.id}>{account.accountName}</option>)}</select><input className="input" type="number" value={line2.debit} onChange={(e) => setLine2({ ...line2, debit: Number(e.target.value) })} /><input className="input" type="number" value={line2.credit} onChange={(e) => setLine2({ ...line2, credit: Number(e.target.value) })} /><button className="primary-button" onClick={async () => { await api.post('/api/finance/transactions', { description, transactionDate: new Date().toISOString(), lines: [line1, line2] }); await load(); }}>Post transaction</button></div><div className="list-view">{transactions.map((transaction) => <div key={transaction.id} className="mini-card"><strong>{transaction.voucherNumber}</strong><span>{transaction.description}</span><span>{transaction.totalAmount}</span></div>)}</div></section>;
+}

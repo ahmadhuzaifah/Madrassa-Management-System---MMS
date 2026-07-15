@@ -699,3 +699,155 @@ Public verification endpoint for certificate status.
 ### GET /api/certificates/student/:id
 
 Lists certificates issued to a student.
+
+## Finance
+
+### GET /api/finance/accounts
+
+Lists finance accounts for the workspace.
+
+### POST /api/finance/accounts
+
+Creates a finance account.
+
+### GET /api/finance/transactions
+
+Lists posted transactions with ledger lines.
+
+### POST /api/finance/transactions
+
+Posts a balanced double-entry transaction.
+
+### GET /api/finance/expenses
+
+Lists expenses.
+
+### POST /api/finance/expenses
+
+Creates an expense record.
+
+### GET /api/finance/donations
+
+Lists donations.
+
+### POST /api/finance/donations
+
+Creates a donation receipt.
+
+### GET /api/finance/reports/cashbook
+
+Returns cash book data.
+
+### GET /api/finance/reports/ledger
+
+Returns general ledger data.
+
+### GET /api/finance/reports/trial-balance
+
+Returns trial balance rows.
+
+### GET /api/finance/reports/income
+
+Returns income accounts.
+
+### GET /api/finance/reports/donations
+
+Returns donation records.
+
+## HR
+
+### GET /api/hr/departments
+
+Lists HR departments.
+
+### POST /api/hr/departments
+
+Creates an HR department.
+
+### PATCH /api/hr/departments/:id
+
+Updates an HR department.
+
+### DELETE /api/hr/departments/:id
+
+Deletes an HR department.
+
+### GET /api/hr/designations
+
+Lists designations.
+
+### POST /api/hr/designations
+
+Creates a designation.
+
+### PATCH /api/hr/designations/:id
+
+Updates a designation.
+
+### DELETE /api/hr/designations/:id
+
+Deletes a designation.
+
+### GET /api/hr/employees
+
+Lists employees.
+
+### POST /api/hr/employees
+
+Creates an employee record.
+
+### GET /api/hr/employees/:id
+
+Returns employee details.
+
+### PATCH /api/hr/employees/:id
+
+Updates an employee.
+
+### DELETE /api/hr/employees/:id
+
+Deletes an employee.
+
+### GET /api/hr/attendance
+
+Lists employee attendance.
+
+### POST /api/hr/attendance
+
+Creates an attendance record.
+
+### PATCH /api/hr/attendance/:id
+
+Updates an attendance record.
+
+### GET /api/hr/attendance/reports
+
+Returns attendance reporting data.
+
+### GET /api/hr/leaves
+
+Lists leave requests.
+
+### POST /api/hr/leaves
+
+Creates a leave request.
+
+### PATCH /api/hr/leaves/:id
+
+Updates a leave request.
+
+### GET /api/hr/payroll
+
+Lists payroll records.
+
+### POST /api/hr/payroll/generate
+
+Generates monthly payroll for an employee.
+
+### POST /api/hr/payroll/pay
+
+Marks payroll as paid and creates finance transactions.
+
+### GET /api/hr/payroll/:id
+
+Returns payroll details.
