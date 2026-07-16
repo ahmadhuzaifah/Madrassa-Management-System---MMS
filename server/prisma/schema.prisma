@@ -493,6 +493,7 @@ model Student {
   examResults       StudentExamResult[]
   resultCards       ResultCard[]
   certificates      Certificate[]
+  libraryMembers    LibraryMember[]
   @@index([madrassaId, status])
 }
 
@@ -924,6 +925,7 @@ model Employee {
   leaveRequests    HrLeaveRequest[]
   payrolls         Payroll[]
   documents        EmployeeDocument[]
+  libraryMembers   LibraryMember[]
   @@unique([organizationId, employeeNumber])
   @@index([organizationId, status])
 }
@@ -1129,4 +1131,127 @@ model MaintenanceRecord {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@index([assetId, date])
+}
+
+model BookCategory {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  description   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  books         Book[]
+  @@unique([organizationId, name])
+}
+
+model Author {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  biography     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  books         Book[]
+  @@unique([organizationId, name])
+}
+
+model Publisher {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  contact       String?
+  address       String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  books         Book[]
+  @@unique([organizationId, name])
+}
+
+model Book {
+  id            String   @id @default(cuid())
+  organizationId String
+  bookCode      String
+  isbn          String
+  title         String
+  categoryId    String
+  authorId      String?
+  publisherId   String?
+  language      String?
+  edition       String?
+  publishYear   Int?
+  description   String?
+  totalCopies   Int      @default(0)
+  availableCopies Int    @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  category      BookCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  author        Author?  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  publisher     Publisher? @relation(fields: [publisherId], references: [id], onDelete: SetNull)
+  copies        BookCopy[]
+  @@unique([organizationId, isbn])
+  @@unique([organizationId, bookCode])
+}
+
+model BookCopy {
+  id            String   @id @default(cuid())
+  bookId        String
+  barcode       String
+  accessionNumber String
+  condition     String   @default("GOOD")
+  status        String   @default("AVAILABLE")
+  location      String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  book          Book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  issues        BookIssue[]
+  @@unique([bookId, barcode])
+  @@unique([bookId, accessionNumber])
+}
+
+model LibraryMember {
+  id            String   @id @default(cuid())
+  organizationId String
+  studentId     String?
+  employeeId    String?
+  memberNumber  String
+  joinDate      DateTime @default(now())
+  status        String   @default("ACTIVE")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  student       Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  employee      Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  issues        BookIssue[]
+  @@unique([organizationId, memberNumber])
+  @@unique([studentId])
+  @@unique([employeeId])
+}
+
+model BookIssue {
+  id            String   @id @default(cuid())
+  bookCopyId    String
+  memberId      String
+  issueDate     DateTime
+  dueDate       DateTime
+  returnDate    DateTime?
+  issuedBy      String?
+  returnedTo    String?
+  status        String   @default("ISSUED")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  bookCopy      BookCopy @relation(fields: [bookCopyId], references: [id], onDelete: Restrict)
+  member        LibraryMember @relation(fields: [memberId], references: [id], onDelete: Restrict)
+  fine          LibraryFine?
+  @@index([memberId, status])
+  @@index([bookCopyId, status])
+}
+
+model LibraryFine {
+  id            String   @id @default(cuid())
+  issueId       String   @unique
+  amount        Float
+  paid          Boolean  @default(false)
+  paymentDate   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  issue         BookIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
 }

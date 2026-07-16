@@ -247,4 +247,31 @@ describe('App shell', () => {
     expect(await screen.findByText(/Inventory Hub/i)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /^Assets$/i })).toBeInTheDocument();
   });
+
+  it('renders the library workspace for authenticated sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Library User', email: 'library@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/library/categories')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ categories: [] }) });
+      if (url.includes('/api/library/books')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ books: [] }) });
+      if (url.includes('/api/library/members')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ members: [] }) });
+      if (url.includes('/api/library/issues')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ issues: [] }) });
+      if (url.includes('/api/library/reports')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ books: [], issues: [], fines: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/library']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Library Hub/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /^Books$/i }).some((link) => link.getAttribute('href') === '/library/books')).toBe(true);
+  });
 });

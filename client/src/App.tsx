@@ -85,6 +85,15 @@ import { InventorySuppliersPage } from './pages/inventory/InventorySuppliersPage
 import { InventoryPurchasesPage } from './pages/inventory/InventoryPurchasesPage';
 import { InventoryMaintenancePage } from './pages/inventory/InventoryMaintenancePage';
 import { InventoryReportsPage } from './pages/inventory/InventoryReportsPage';
+import { LibraryHomePage } from './pages/library/LibraryHomePage';
+import { LibraryBooksPage } from './pages/library/LibraryBooksPage';
+import { LibraryBookDetailPage } from './pages/library/LibraryBookDetailPage';
+import { LibraryCategoriesPage } from './pages/library/LibraryCategoriesPage';
+import { LibraryAuthorsPage } from './pages/library/LibraryAuthorsPage';
+import { LibraryPublishersPage } from './pages/library/LibraryPublishersPage';
+import { LibraryMembersPage } from './pages/library/LibraryMembersPage';
+import { LibraryIssuesPage } from './pages/library/LibraryIssuesPage';
+import { LibraryReportsPage } from './pages/library/LibraryReportsPage';
 
 function App() {
   return (
@@ -235,6 +244,15 @@ function App() {
           <Route path="/inventory/purchases" element={<ProtectedRoute><InventoryPurchasesPage /></ProtectedRoute>} />
           <Route path="/inventory/maintenance" element={<ProtectedRoute><InventoryMaintenancePage /></ProtectedRoute>} />
           <Route path="/inventory/reports" element={<ProtectedRoute><InventoryReportsPage /></ProtectedRoute>} />
+          <Route path="/library" element={<ProtectedRoute><LibraryHomePage /></ProtectedRoute>} />
+          <Route path="/library/books" element={<ProtectedRoute><LibraryBooksPage /></ProtectedRoute>} />
+          <Route path="/library/books/:id" element={<ProtectedRoute><LibraryBookDetailPage /></ProtectedRoute>} />
+          <Route path="/library/categories" element={<ProtectedRoute><LibraryCategoriesPage /></ProtectedRoute>} />
+          <Route path="/library/authors" element={<ProtectedRoute><LibraryAuthorsPage /></ProtectedRoute>} />
+          <Route path="/library/publishers" element={<ProtectedRoute><LibraryPublishersPage /></ProtectedRoute>} />
+          <Route path="/library/members" element={<ProtectedRoute><LibraryMembersPage /></ProtectedRoute>} />
+          <Route path="/library/issues" element={<ProtectedRoute><LibraryIssuesPage /></ProtectedRoute>} />
+          <Route path="/library/reports" element={<ProtectedRoute><LibraryReportsPage /></ProtectedRoute>} />
         </Route>
       </Routes>
     </AppProvider>

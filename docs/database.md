@@ -174,6 +174,19 @@ The inventory module stores organization-scoped assets, inventory, suppliers, pu
 - `PurchaseItem` stores purchase line items.
 - `MaintenanceRecord` stores asset maintenance events.
 
+## Library module
+
+The library module stores organization-scoped book catalog data, members, circulation, and fines:
+
+- `BookCategory` stores book subject categories.
+- `Author` stores author profiles.
+- `Publisher` stores publisher details.
+- `Book` stores title-level catalog entries and stock counts.
+- `BookCopy` stores individual physical copies with barcodes and accession numbers.
+- `LibraryMember` stores student and employee member records.
+- `BookIssue` stores issue and return events.
+- `LibraryFine` stores fine assessments and payment state.
+
 ### FileUpload
 
 Uploaded files metadata with server-side storage path.

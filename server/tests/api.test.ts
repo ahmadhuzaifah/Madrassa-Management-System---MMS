@@ -901,4 +901,110 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.assets).toHaveLength(0);
   });
+
+  it('manages library books, issue-return cycles, fines, and isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Library Owner',
+        email: 'library-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Library Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Library Madrassa' } });
+    const otherOwner = await prisma.user.create({ data: { name: 'Library Other Owner', email: 'library-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Library Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Library Madrassa' } });
+    const cash = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '1000', accountName: 'Cash', accountType: 'ASSET' } });
+    const fineIncome = await prisma.account.create({ data: { organizationId: organization.id, accountCode: '4100', accountName: 'Library Fine Income', accountType: 'INCOME' } });
+    const suffix = `${Date.now()}`;
+    const student = await prisma.student.create({
+      data: {
+        madrassaId: (await prisma.madrassa.findFirstOrThrow({ where: { organizationId: organization.id } })).id,
+        registrationNumber: `STU-2026-${suffix.slice(-4)}`,
+        fullName: 'Library Student',
+        status: 'ACTIVE',
+      },
+    });
+    const employee = await prisma.employee.create({
+      data: {
+        organizationId: organization.id,
+        employeeNumber: 'EMP-2026-0001',
+        firstName: 'Library',
+        lastName: 'Teacher',
+        employmentType: 'FULL_TIME',
+        joiningDate: new Date('2026-07-01'),
+      },
+    });
+
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+    const categoryRes = await request(app)
+      .post('/api/library/categories')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Islamic Studies', description: 'Library section' });
+    expect(categoryRes.status).toBe(201);
+
+    const bookRes = await request(app)
+      .post('/api/library/books')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({
+        isbn: '978-1-23456-789-7',
+        title: 'Fatawa Library',
+        categoryId: categoryRes.body.category.id,
+        language: 'Urdu',
+        edition: '1st',
+        publishYear: 2026,
+        totalCopies: 1,
+        availableCopies: 1,
+      });
+    expect(bookRes.status).toBe(201);
+    expect(bookRes.body.book.bookCode).toMatch(/^LIB-/);
+
+    const copyRes = await request(app)
+      .post(`/api/library/books/${bookRes.body.book.id}/copies`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ condition: 'GOOD', location: 'Stacks A' });
+    expect(copyRes.status).toBe(201);
+
+    const membersRes = await request(app).get('/api/library/members').set('Cookie', ownerCookie);
+    expect(membersRes.status).toBe(200);
+    expect(membersRes.body.members).toHaveLength(2);
+
+    const issueRes = await request(app)
+      .post('/api/library/issues')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ studentId: student.id, bookCopyId: copyRes.body.copy.id, issueDate: '2026-07-01' });
+    expect(issueRes.status).toBe(201);
+
+    const returnRes = await request(app)
+      .post(`/api/library/issues/${issueRes.body.issue.id}/return`)
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ returnedTo: owner.id, cashAccountId: cash.id, fineIncomeAccountId: fineIncome.id });
+    expect(returnRes.status).toBe(200);
+
+    const booksReport = await request(app).get('/api/library/reports/books').set('Cookie', ownerCookie);
+    expect(booksReport.status).toBe(200);
+    expect(booksReport.body.books).toHaveLength(1);
+
+    const issuesReport = await request(app).get('/api/library/reports/issues').set('Cookie', ownerCookie);
+    expect(issuesReport.status).toBe(200);
+    expect(issuesReport.body.issues).toHaveLength(1);
+
+    const finesReport = await request(app).get('/api/library/reports/fines').set('Cookie', ownerCookie);
+    expect(finesReport.status).toBe(200);
+    expect(finesReport.body.fines).toHaveLength(1);
+
+    const isolation = await request(app).get('/api/library/books').set('Cookie', `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.books).toHaveLength(0);
+  });
 });

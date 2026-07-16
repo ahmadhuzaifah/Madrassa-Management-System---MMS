@@ -937,3 +937,73 @@ Returns stock report data.
 ### GET /api/inventory/reports/purchases
 
 Returns purchase report data.
+
+## Library
+
+### GET /api/library/categories
+
+Lists library book categories.
+
+### POST /api/library/categories
+
+Creates a book category.
+
+### PATCH /api/library/categories/:id
+
+Updates a book category.
+
+### DELETE /api/library/categories/:id
+
+Deletes a book category.
+
+### GET /api/library/books
+
+Lists books with copies and metadata.
+
+### POST /api/library/books
+
+Creates a book record.
+
+### GET /api/library/books/:id
+
+Returns book details.
+
+### PATCH /api/library/books/:id
+
+Updates a book record.
+
+### DELETE /api/library/books/:id
+
+Deletes a book record.
+
+### POST /api/library/books/:id/copies
+
+Creates a new book copy.
+
+### GET /api/library/members
+
+Lists library members.
+
+### GET /api/library/issues
+
+Lists issued books.
+
+### POST /api/library/issues
+
+Issues a book copy to a member.
+
+### POST /api/library/issues/:id/return
+
+Returns a book copy and calculates any fine.
+
+### GET /api/library/reports/books
+
+Returns book inventory report data.
+
+### GET /api/library/reports/issues
+
+Returns issued books report data.
+
+### GET /api/library/reports/fines
+
+Returns fine collection report data.
