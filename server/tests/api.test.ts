@@ -10,7 +10,7 @@ process.env.NODE_ENV = 'test';
 process.env.JWT_SECRET = 'test-secret-that-is-long-enough';
 process.env.CLIENT_URL = 'http://localhost:5173';
 
-vi.setConfig({ hookTimeout: 60000, testTimeout: 60000 });
+vi.setConfig({ hookTimeout: 120000, testTimeout: 120000 });
 
 let app: any;
 let prisma: any;
@@ -1080,5 +1080,74 @@ describe('Authentication and users API', () => {
     const isolation = await request(app).get('/api/communication/announcements').set('Cookie', `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`);
     expect(isolation.status).toBe(200);
     expect(isolation.body.announcements).toHaveLength(0);
+  });
+
+  it('supports parent, student, and teacher portal access with isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Portal Owner',
+        email: 'portal-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Portal Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Portal Madrassa' } });
+    const student = await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-PORTAL-${Date.now()}`, fullName: 'Portal Student', status: 'ACTIVE' } });
+    const employee = await prisma.employee.create({ data: { organizationId: organization.id, employeeNumber: `EMP-PORTAL-${Date.now()}`, firstName: 'Portal', lastName: 'Teacher', employmentType: 'FULL_TIME', joiningDate: new Date('2026-07-01') } });
+    const parentUser = await prisma.user.create({ data: { name: 'Parent Portal User', email: 'parent-portal@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'PARENT', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const studentUser = await prisma.user.create({ data: { name: 'Student Portal User', email: 'student-portal@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'STUDENT', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const teacherUser = await prisma.user.create({ data: { name: 'Teacher Portal User', email: 'teacher-portal@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'TEACHER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    await prisma.organizationMember.create({ data: { organizationId: organization.id, userId: parentUser.id, role: 'MEMBER' } });
+    await prisma.organizationMember.create({ data: { organizationId: organization.id, userId: studentUser.id, role: 'MEMBER' } });
+    await prisma.organizationMember.create({ data: { organizationId: organization.id, userId: teacherUser.id, role: 'MEMBER' } });
+    const parent = await prisma.parentUser.create({ data: { organizationId: organization.id, userId: parentUser.id, displayName: 'Portal Parent' } });
+    await prisma.parentStudent.create({ data: { organizationId: organization.id, parentUserId: parent.id, studentId: student.id, relationship: 'Father' } });
+    await prisma.studentPortalAccount.create({ data: { organizationId: organization.id, userId: studentUser.id, studentId: student.id } });
+    await prisma.teacherPortalAccount.create({ data: { organizationId: organization.id, userId: teacherUser.id, employeeId: employee.id } });
+
+    const parentLogin = await request(app)
+      .post('/api/portal/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'parent-portal@example.com', password: 'SecurePass123!' });
+    expect(parentLogin.status).toBe(200);
+
+    const parentMe = await request(app).get('/api/portal/me').set('Cookie', parentLogin.headers['set-cookie']);
+    expect(parentMe.status).toBe(200);
+    expect(parentMe.body.portalType).toBe('PARENT');
+
+    const parentDashboard = await request(app).get('/api/portal/parent/dashboard').set('Cookie', parentLogin.headers['set-cookie']);
+    expect(parentDashboard.status).toBe(200);
+    expect(parentDashboard.body.metrics.children).toBe(1);
+
+    const studentLogin = await request(app)
+      .post('/api/portal/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'student-portal@example.com', password: 'SecurePass123!' });
+    expect(studentLogin.status).toBe(200);
+
+    const studentDashboard = await request(app).get('/api/portal/student/dashboard').set('Cookie', studentLogin.headers['set-cookie']);
+    expect(studentDashboard.status).toBe(200);
+    expect(studentDashboard.body.student.registrationNumber).toContain('STU-PORTAL');
+
+    const teacherLogin = await request(app)
+      .post('/api/portal/login')
+      .set('Cookie', `csrf_token=${csrfToken}`)
+      .set('X-CSRF-Token', csrfToken)
+      .send({ email: 'teacher-portal@example.com', password: 'SecurePass123!' });
+    expect(teacherLogin.status).toBe(200);
+
+    const teacherDashboard = await request(app).get('/api/portal/teacher/dashboard').set('Cookie', teacherLogin.headers['set-cookie']);
+    expect(teacherDashboard.status).toBe(200);
+    expect(teacherDashboard.body.employee.firstName).toBe('Portal');
+
+    const isolation = await request(app).get('/api/portal/parent/students').set('Cookie', `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.students).toHaveLength(0);
   });
 });

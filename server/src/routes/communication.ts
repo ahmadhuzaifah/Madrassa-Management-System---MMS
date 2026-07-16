@@ -217,10 +217,10 @@ router.post('/send', asyncHandler(async (req: AuthenticatedRequest, res) => {
   if (!parsed.success) throw new AppError(400, 'Invalid send payload', 'VALIDATION_ERROR', parsed.error.flatten());
   const { organization } = await getWorkspace(req.user!.id);
   const members = await prisma.organizationMember.findMany({ where: { organizationId: organization.id }, include: { user: true } });
-  const userIds = members.map((m) => m.userId);
+  const userIds = members.map((m: { userId: string }) => m.userId);
   const queue = await prisma.messageQueue.create({ data: { organizationId: organization.id, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: parsed.data.recipientId ?? null, subject: parsed.data.subject ?? null, content: parsed.data.content, status: 'SENT', sentAt: new Date() } });
   await deliverToMembers({ organizationId: organization.id, title: parsed.data.subject ?? 'Communication', message: parsed.data.content, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: parsed.data.recipientId ?? null, userIds, providerType: parsed.data.channel, subject: parsed.data.subject ?? null });
-  await prisma.messageLog.createMany({ data: userIds.map((userId) => ({ organizationId: organization.id, queueId: queue.id, providerType: parsed.data.channel, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: userId, subject: parsed.data.subject ?? null, content: parsed.data.content, status: 'DELIVERED', deliveredAt: new Date() })) });
+  await prisma.messageLog.createMany({ data: userIds.map((userId: string) => ({ organizationId: organization.id, queueId: queue.id, providerType: parsed.data.channel, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: userId, subject: parsed.data.subject ?? null, content: parsed.data.content, status: 'DELIVERED', deliveredAt: new Date() })) });
   await logActivity({ userId: req.user!.id, action: 'communication_message_sent', entityType: 'messageQueue', entityId: queue.id });
   res.status(201).json({ queue });
 }));

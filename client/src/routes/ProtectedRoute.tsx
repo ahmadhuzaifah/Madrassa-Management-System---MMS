@@ -2,7 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import { useAppContext } from '../context/AppContext';
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
+export function ProtectedRoute({ children, roles }: { children: ReactNode; roles?: string[] }) {
   const { isAuthenticated, loading, user } = useAppContext();
   const location = useLocation();
 
@@ -12,6 +12,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  if (roles && roles.length > 0 && !roles.includes(user?.role ?? '')) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   if (user?.emailVerified === false) {

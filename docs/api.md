@@ -1093,3 +1093,97 @@ Lists communication provider settings.
 ### PUT /api/communication/providers
 
 Creates or updates provider settings.
+
+## Portal
+
+### POST /api/portal/login
+
+Authenticates a parent, student, or teacher portal user.
+
+### POST /api/portal/logout
+
+Ends the portal session.
+
+### GET /api/portal/me
+
+Returns the active portal context and linked workspace data.
+
+### GET /api/portal/parent/dashboard
+
+Returns parent portal dashboard metrics.
+
+### GET /api/portal/parent/students
+
+Returns children linked to the parent account.
+
+### GET /api/portal/parent/fees
+
+Returns parent-linked fee invoices and payments.
+
+### GET /api/portal/parent/results
+
+Returns parent-linked result cards.
+
+### GET /api/portal/parent/attendance
+
+Returns attendance records for linked children.
+
+### GET /api/portal/parent/certificates
+
+Returns certificates for linked children.
+
+### GET /api/portal/student/dashboard
+
+Returns student portal dashboard metrics.
+
+### GET /api/portal/student/profile
+
+Returns the student profile.
+
+### GET /api/portal/student/results
+
+Returns student results.
+
+### GET /api/portal/student/attendance
+
+Returns student attendance history.
+
+### GET /api/portal/student/fees
+
+Returns student fee invoices and payments.
+
+### GET /api/portal/student/library
+
+Returns current library issues for the student.
+
+### GET /api/portal/student/certificates
+
+Returns student certificates.
+
+### GET /api/portal/teacher/dashboard
+
+Returns teacher portal dashboard metrics.
+
+### GET /api/portal/teacher/classes
+
+Returns classes assigned to the teacher.
+
+### GET /api/portal/teacher/students
+
+Returns students in the teacher workspace.
+
+### POST /api/portal/teacher/attendance
+
+Records attendance from the teacher portal.
+
+### POST /api/portal/teacher/results
+
+Records marks from the teacher portal.
+
+### GET /api/portal/teacher/timetable
+
+Returns the teacher timetable.
+
+### GET /api/portal/teacher/payroll
+
+Returns the teacher payroll summary.

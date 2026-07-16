@@ -102,6 +102,10 @@ import { CommunicationSendPage } from './pages/communication/CommunicationSendPa
 import { CommunicationScheduledPage } from './pages/communication/CommunicationScheduledPage';
 import { CommunicationHistoryPage } from './pages/communication/CommunicationHistoryPage';
 import { CommunicationProvidersPage } from './pages/communication/CommunicationProvidersPage';
+import { PortalLayout } from './layouts/PortalLayout';
+import { ParentPortalHomePage, ParentPortalDashboardPage, ParentPortalAttendancePage, ParentPortalFeesPage, ParentPortalResultsPage, ParentPortalCertificatesPage } from './pages/portal/ParentPortalPages';
+import { StudentPortalHomePage, StudentPortalDashboardPage, StudentPortalProfilePage, StudentPortalAttendancePage, StudentPortalResultsPage, StudentPortalFeesPage, StudentPortalLibraryPage, StudentPortalCertificatesPage } from './pages/portal/StudentPortalPages';
+import { TeacherPortalHomePage, TeacherPortalDashboardPage, TeacherPortalClassesPage, TeacherPortalAttendancePage, TeacherPortalResultsPage, TeacherPortalTimetablePage, TeacherPortalPayrollPage } from './pages/portal/TeacherPortalPages';
 
 function App() {
   return (
@@ -259,7 +263,34 @@ function App() {
           <Route path="/communication/send" element={<ProtectedRoute><CommunicationSendPage /></ProtectedRoute>} />
           <Route path="/communication/scheduled" element={<ProtectedRoute><CommunicationScheduledPage /></ProtectedRoute>} />
           <Route path="/communication/history" element={<ProtectedRoute><CommunicationHistoryPage /></ProtectedRoute>} />
-          <Route path="/communication/providers" element={<ProtectedRoute><CommunicationProvidersPage /></ProtectedRoute>} />
+        <Route path="/communication/providers" element={<ProtectedRoute><CommunicationProvidersPage /></ProtectedRoute>} />
+        <Route path="/portal/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
+          <Route index element={<ParentPortalHomePage />} />
+          <Route path="dashboard" element={<ParentPortalDashboardPage />} />
+          <Route path="attendance" element={<ParentPortalAttendancePage />} />
+          <Route path="fees" element={<ParentPortalFeesPage />} />
+          <Route path="results" element={<ParentPortalResultsPage />} />
+          <Route path="certificates" element={<ParentPortalCertificatesPage />} />
+        </Route>
+        <Route path="/portal/student" element={<ProtectedRoute roles={['STUDENT', 'ADMIN']}><PortalLayout title="Student Portal" subtitle="Track your academic progress, fees, library books, and certificates." /></ProtectedRoute>}>
+          <Route index element={<StudentPortalHomePage />} />
+          <Route path="dashboard" element={<StudentPortalDashboardPage />} />
+          <Route path="profile" element={<StudentPortalProfilePage />} />
+          <Route path="attendance" element={<StudentPortalAttendancePage />} />
+          <Route path="results" element={<StudentPortalResultsPage />} />
+          <Route path="fees" element={<StudentPortalFeesPage />} />
+          <Route path="library" element={<StudentPortalLibraryPage />} />
+          <Route path="certificates" element={<StudentPortalCertificatesPage />} />
+        </Route>
+        <Route path="/portal/teacher" element={<ProtectedRoute roles={['TEACHER', 'ADMIN']}><PortalLayout title="Teacher Portal" subtitle="Manage classes, attendance, results, timetable, and payroll." /></ProtectedRoute>}>
+          <Route index element={<TeacherPortalHomePage />} />
+          <Route path="dashboard" element={<TeacherPortalDashboardPage />} />
+          <Route path="classes" element={<TeacherPortalClassesPage />} />
+          <Route path="attendance" element={<TeacherPortalAttendancePage />} />
+          <Route path="results" element={<TeacherPortalResultsPage />} />
+          <Route path="timetable" element={<TeacherPortalTimetablePage />} />
+          <Route path="payroll" element={<TeacherPortalPayrollPage />} />
+        </Route>
           <Route path="/library" element={<ProtectedRoute><LibraryHomePage /></ProtectedRoute>} />
           <Route path="/library/books" element={<ProtectedRoute><LibraryBooksPage /></ProtectedRoute>} />
           <Route path="/library/books/:id" element={<ProtectedRoute><LibraryBookDetailPage /></ProtectedRoute>} />

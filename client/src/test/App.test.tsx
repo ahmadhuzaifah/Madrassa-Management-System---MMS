@@ -297,4 +297,52 @@ describe('App shell', () => {
     expect(await screen.findByText(/Communication Hub/i)).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /Announcements/i }).some((link) => link.getAttribute('href') === '/communication/announcements')).toBe(true);
   });
+
+  it('renders the parent portal workspace for portal users', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Parent User', email: 'parent@example.com', role: 'PARENT', emailVerified: true }, role: 'PARENT', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/portal/parent/dashboard')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ students: [], metrics: { children: 0, attendance: 0, pendingFees: 0 } }) });
+      }
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/portal/parent/dashboard']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Parent Portal/i)).toBeInTheDocument();
+  });
+
+  it('renders the teacher portal workspace for portal users', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Teacher User', email: 'teacher@example.com', role: 'TEACHER', emailVerified: true }, role: 'TEACHER', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/portal/teacher/dashboard')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ employee: null, classes: [], metrics: { classes: 0, attendanceMarks: 0, resultsEntry: 0 } }) });
+      }
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/portal/teacher/dashboard']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Teacher Portal/i)).toBeInTheDocument();
+  });
 });

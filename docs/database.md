@@ -223,6 +223,16 @@ Secure token record for email verification.
 - `User` 1:N `FileUpload`
 - `User` 1:N `PasswordResetToken`
 - `User` 1:N `EmailVerificationToken`
+- `User` 1:N `ParentUser`
+- `User` 1:N `StudentPortalAccount`
+- `User` 1:N `TeacherPortalAccount`
+- `User` 1:N `PortalSession`
+- `User` 1:N `PortalPreference`
+- `User` 1:N `PortalDevice`
+- `ParentUser` 1:N `ParentStudent`
+- `ParentStudent` N:1 `Student`
+- `StudentPortalAccount` N:1 `Student`
+- `TeacherPortalAccount` N:1 `Employee`
 
 ## Indexes and performance
 
@@ -232,6 +242,8 @@ Important indexes in the schema:
 - `@@index([userId])` on `Subscription`, `Notification`, `FileUpload`
 - `@@index([userId, isRead])` on `Notification`
 - `@@index([userId, createdAt])` on `ActivityLog`
+- `@@index([organizationId, portalType, accountId])` on portal session and preference tables
+- `@@index([organizationId, status])` on `ParentUser`, `StudentPortalAccount`, and `TeacherPortalAccount`
 
 ## Database setup
 

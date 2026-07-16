@@ -24,6 +24,7 @@ import financeRoutes from './routes/finance.js';
 import hrRoutes from './routes/hr.js';
 import inventoryRoutes from './routes/inventory.js';
 import communicationRoutes from './routes/communication.js';
+import portalRoutes from './routes/portal.js';
 import libraryRoutes from './routes/library.js';
 import notificationRoutes from './routes/notifications.js';
 import logsRoutes from './routes/logs.js';
@@ -52,7 +53,7 @@ app.use((req, res, next) => {
   res.on('finish', () => console.info(JSON.stringify({ level: 'info', method: req.method, path: req.path, status: res.statusCode, durationMs: Date.now() - startedAt })));
   next();
 });
-app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: 'draft-7', legacyHeaders: false }));
+app.use('/api', rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, standardHeaders: 'draft-7', legacyHeaders: false }));
 app.use('/api/auth', rateLimit({ windowMs: 15 * 60 * 1000, max: 15, standardHeaders: 'draft-7', legacyHeaders: false }));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
@@ -75,6 +76,7 @@ app.use('/api/finance', financeRoutes);
 app.use('/api/hr', hrRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/communication', communicationRoutes);
+app.use('/api/portal', portalRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/logs', logsRoutes);
