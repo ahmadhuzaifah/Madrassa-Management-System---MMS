@@ -1150,4 +1150,46 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.students).toHaveLength(0);
   });
+
+  it('creates cms websites and pages with public access', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'CMS Owner',
+        email: 'cms-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'CMS Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const websiteRes = await request(app)
+      .post('/api/cms/websites')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Madrassa Website', slug: 'madrassa-website', status: 'PUBLISHED' });
+    expect(websiteRes.status).toBe(201);
+
+    const pageRes = await request(app)
+      .post('/api/cms/pages')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ websiteId: websiteRes.body.website.id, title: 'About', slug: 'about', content: 'About us', status: 'PUBLISHED', visibility: 'PUBLIC' });
+    expect(pageRes.status).toBe(201);
+
+    const websites = await request(app).get('/api/cms/websites').set('Cookie', ownerCookie);
+    expect(websites.status).toBe(200);
+    expect(websites.body.websites).toHaveLength(1);
+
+    const publicPage = await request(app).get('/api/cms/public/about');
+    expect(publicPage.status).toBe(200);
+    expect(publicPage.body.page.slug).toBe('about');
+
+    const isolation = await request(app).get('/api/cms/websites').set('Cookie', `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.websites).toHaveLength(1);
+  });
 });

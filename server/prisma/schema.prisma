@@ -70,6 +70,7 @@ model Organization {
   members         OrganizationMember[]
   invitations     OrganizationInvitation[]
   madrassas       Madrassa[]
+  websites        Website[]
   @@index([ownerId])
 }
 
@@ -1178,6 +1179,293 @@ model PortalDevice {
   updatedAt      DateTime @updatedAt
   user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   @@index([organizationId, portalType, accountId])
+}
+
+model Website {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  slug           String   @unique
+  status         String   @default("DRAFT")
+  currentThemeId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  theme          WebsiteTheme?
+  setting        WebsiteSetting?
+  menus          WebsiteMenu[]
+  pages          WebsitePage[]
+  media          WebsiteMedia[]
+  sliders        WebsiteSlider[]
+  announcements  WebsiteAnnouncement[]
+  events         WebsiteEvent[]
+  galleries      WebsiteGallery[]
+  faqs           WebsiteFaq[]
+  testimonials   WebsiteTestimonial[]
+  staff          WebsiteStaff[]
+  contacts       WebsiteContactMessage[]
+  seo            WebsiteSeo?
+  redirects      WebsiteRedirect[]
+  analytics      WebsiteAnalytics[]
+  @@index([organizationId, status])
+}
+
+model WebsiteTheme {
+  id             String   @id @default(cuid())
+  websiteId      String   @unique
+  name           String
+  colors         String?
+  typography     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteSetting {
+  id             String   @id @default(cuid())
+  websiteId      String   @unique
+  logoUrl        String?
+  faviconUrl     String?
+  primaryColor   String?
+  secondaryColor String?
+  typography     String?
+  contactInfo    String?
+  email          String?
+  phone          String?
+  whatsapp       String?
+  address        String?
+  googleMaps     String?
+  socialLinks    String?
+  footerSettings String?
+  copyright      String?
+  customScripts  String?
+  customCss      String?
+  customJs       String?
+  maintenanceMode Boolean @default(false)
+  comingSoonMode  Boolean @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteMenu {
+  id             String   @id @default(cuid())
+  websiteId      String
+  name           String
+  location       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  items          WebsiteMenuItem[]
+}
+
+model WebsiteMenuItem {
+  id             String   @id @default(cuid())
+  menuId         String
+  label          String
+  url            String
+  parentId       String?
+  sortOrder      Int      @default(0)
+  isExternal     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  menu           WebsiteMenu @relation(fields: [menuId], references: [id], onDelete: Cascade)
+}
+
+model WebsitePage {
+  id             String   @id @default(cuid())
+  websiteId      String
+  title          String
+  slug           String
+  content        String?
+  visibility     String   @default("PUBLIC")
+  status         String   @default("DRAFT")
+  publishedAt    DateTime?
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+  sections       WebsiteSection[]
+  @@unique([websiteId, slug])
+}
+
+model WebsiteSection {
+  id             String   @id @default(cuid())
+  pageId         String
+  title          String?
+  sectionType    String
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  page           WebsitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  blocks         WebsiteBlock[]
+}
+
+model WebsiteBlock {
+  id             String   @id @default(cuid())
+  sectionId      String
+  blockType      String
+  content        String?
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  section        WebsiteSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteMedia {
+  id             String   @id @default(cuid())
+  websiteId      String
+  fileName       String
+  url            String
+  mimeType       String
+  tags           String?
+  folder         String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteSlider {
+  id             String   @id @default(cuid())
+  websiteId      String
+  title          String
+  subtitle       String?
+  imageUrl       String?
+  linkUrl        String?
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteAnnouncement {
+  id             String   @id @default(cuid())
+  websiteId      String
+  title          String
+  content        String
+  status         String   @default("DRAFT")
+  publishAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteEvent {
+  id             String   @id @default(cuid())
+  websiteId      String
+  title          String
+  description    String?
+  eventDate      DateTime
+  location       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteGallery {
+  id             String   @id @default(cuid())
+  websiteId      String
+  title          String
+  description    String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteFaq {
+  id             String   @id @default(cuid())
+  websiteId      String
+  question       String
+  answer         String
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteTestimonial {
+  id             String   @id @default(cuid())
+  websiteId      String
+  name           String
+  role           String?
+  content        String
+  photoUrl       String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteStaff {
+  id             String   @id @default(cuid())
+  websiteId      String
+  name           String
+  designation    String?
+  department     String?
+  biography      String?
+  photoUrl       String?
+  socialLinks    String?
+  sortOrder      Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteContactMessage {
+  id             String   @id @default(cuid())
+  websiteId      String
+  name           String
+  email          String
+  phone          String?
+  subject        String?
+  message        String
+  status         String   @default("NEW")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteSeo {
+  id             String   @id @default(cuid())
+  websiteId      String   @unique
+  title          String?
+  metaTitle      String?
+  metaDescription String?
+  keywords       String?
+  canonicalUrl   String?
+  robots         String?
+  schemaOrg      String?
+  sitemap        String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteRedirect {
+  id             String   @id @default(cuid())
+  websiteId      String
+  fromPath       String
+  toPath         String
+  statusCode     Int      @default(301)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+model WebsiteAnalytics {
+  id             String   @id @default(cuid())
+  websiteId      String
+  pagePath       String
+  views          Int      @default(0)
+  visitors       Int      @default(0)
+  date           DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 }
 
 model EmployeeAttendance {

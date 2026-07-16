@@ -1187,3 +1187,33 @@ Returns the teacher timetable.
 ### GET /api/portal/teacher/payroll
 
 Returns the teacher payroll summary.
+
+## CMS
+
+### GET /api/cms/websites
+
+Lists website records for the authenticated workspace.
+
+### POST /api/cms/websites
+
+Creates a website record.
+
+### PATCH /api/cms/websites/:id
+
+Updates a website record.
+
+### DELETE /api/cms/websites/:id
+
+Deletes a website record.
+
+### GET /api/cms/pages
+
+Lists website pages.
+
+### POST /api/cms/pages
+
+Creates a website page.
+
+### GET /api/cms/public/:slug
+
+Returns a published public page.

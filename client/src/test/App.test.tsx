@@ -345,4 +345,27 @@ describe('App shell', () => {
 
     expect(await screen.findByText(/Teacher Portal/i)).toBeInTheDocument();
   });
+
+  it('renders the cms workspace and public website routes', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'CMS User', email: 'cms@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/cms/websites')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ websites: [] }) });
+      if (url.includes('/api/cms/public/about')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ page: { title: 'About', slug: 'about', sections: [] } }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/cms']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Website CMS/i)).toBeInTheDocument();
+  });
 });

@@ -102,6 +102,7 @@ import { CommunicationSendPage } from './pages/communication/CommunicationSendPa
 import { CommunicationScheduledPage } from './pages/communication/CommunicationScheduledPage';
 import { CommunicationHistoryPage } from './pages/communication/CommunicationHistoryPage';
 import { CommunicationProvidersPage } from './pages/communication/CommunicationProvidersPage';
+import { CmsShellPage, PublicPage } from './pages/cms/CmsPages';
 import { PortalLayout } from './layouts/PortalLayout';
 import { ParentPortalHomePage, ParentPortalDashboardPage, ParentPortalAttendancePage, ParentPortalFeesPage, ParentPortalResultsPage, ParentPortalCertificatesPage } from './pages/portal/ParentPortalPages';
 import { StudentPortalHomePage, StudentPortalDashboardPage, StudentPortalProfilePage, StudentPortalAttendancePage, StudentPortalResultsPage, StudentPortalFeesPage, StudentPortalLibraryPage, StudentPortalCertificatesPage } from './pages/portal/StudentPortalPages';
@@ -132,6 +133,16 @@ function App() {
           path="/verify-email"
           element={<VerifyEmailPage />}
         />
+        <Route path="/about" element={<PublicPage slug="about" title="About" />} />
+        <Route path="/admissions" element={<PublicPage slug="admissions" title="Admissions" />} />
+        <Route path="/programs" element={<PublicPage slug="programs" title="Programs" />} />
+        <Route path="/courses" element={<PublicPage slug="courses" title="Courses" />} />
+        <Route path="/gallery" element={<PublicPage slug="gallery" title="Gallery" />} />
+        <Route path="/events" element={<PublicPage slug="events" title="Events" />} />
+        <Route path="/news" element={<PublicPage slug="news" title="News" />} />
+        <Route path="/contact" element={<PublicPage slug="contact" title="Contact" />} />
+        <Route path="/faqs" element={<PublicPage slug="faqs" title="FAQ" />} />
+        <Route path="/donate" element={<PublicPage slug="donate" title="Donate" />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/session-expired" element={<SessionExpiredPage />} />
         <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
@@ -263,8 +274,21 @@ function App() {
           <Route path="/communication/send" element={<ProtectedRoute><CommunicationSendPage /></ProtectedRoute>} />
           <Route path="/communication/scheduled" element={<ProtectedRoute><CommunicationScheduledPage /></ProtectedRoute>} />
           <Route path="/communication/history" element={<ProtectedRoute><CommunicationHistoryPage /></ProtectedRoute>} />
-        <Route path="/communication/providers" element={<ProtectedRoute><CommunicationProvidersPage /></ProtectedRoute>} />
-        <Route path="/portal/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
+          <Route path="/communication/providers" element={<ProtectedRoute><CommunicationProvidersPage /></ProtectedRoute>} />
+          <Route path="/cms" element={<ProtectedRoute><CmsShellPage title="Website CMS" endpoint="/api/cms/websites" /></ProtectedRoute>} />
+          <Route path="/cms/pages" element={<ProtectedRoute><CmsShellPage title="Pages" endpoint="/api/cms/pages" /></ProtectedRoute>} />
+          <Route path="/cms/menus" element={<ProtectedRoute><CmsShellPage title="Menus" endpoint="/api/cms/menus" /></ProtectedRoute>} />
+          <Route path="/cms/media" element={<ProtectedRoute><CmsShellPage title="Media" endpoint="/api/cms/media" /></ProtectedRoute>} />
+          <Route path="/cms/blog" element={<ProtectedRoute><CmsShellPage title="Blog" endpoint="/api/cms/pages" /></ProtectedRoute>} />
+          <Route path="/cms/events" element={<ProtectedRoute><CmsShellPage title="Events" endpoint="/api/cms/public" /></ProtectedRoute>} />
+          <Route path="/cms/gallery" element={<ProtectedRoute><CmsShellPage title="Gallery" endpoint="/api/cms/public" /></ProtectedRoute>} />
+          <Route path="/cms/testimonials" element={<ProtectedRoute><CmsShellPage title="Testimonials" endpoint="/api/cms/public" /></ProtectedRoute>} />
+          <Route path="/cms/staff" element={<ProtectedRoute><CmsShellPage title="Staff" endpoint="/api/cms/public" /></ProtectedRoute>} />
+          <Route path="/cms/contact" element={<ProtectedRoute><CmsShellPage title="Contact Messages" endpoint="/api/cms/contact" /></ProtectedRoute>} />
+          <Route path="/cms/settings" element={<ProtectedRoute><CmsShellPage title="Settings" endpoint="/api/cms/websites" /></ProtectedRoute>} />
+          <Route path="/cms/themes" element={<ProtectedRoute><CmsShellPage title="Themes" endpoint="/api/cms/websites" /></ProtectedRoute>} />
+          <Route path="/cms/seo" element={<ProtectedRoute><CmsShellPage title="SEO" endpoint="/api/cms/websites" /></ProtectedRoute>} />
+          <Route path="/portal/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
           <Route index element={<ParentPortalHomePage />} />
           <Route path="dashboard" element={<ParentPortalDashboardPage />} />
           <Route path="attendance" element={<ParentPortalAttendancePage />} />

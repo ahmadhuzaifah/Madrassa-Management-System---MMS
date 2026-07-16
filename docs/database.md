@@ -233,6 +233,12 @@ Secure token record for email verification.
 - `ParentStudent` N:1 `Student`
 - `StudentPortalAccount` N:1 `Student`
 - `TeacherPortalAccount` N:1 `Employee`
+- `Organization` 1:N `Website`
+- `Website` 1:1 `WebsiteSetting`
+- `Website` 1:1 `WebsiteTheme`
+- `Website` 1:N `WebsiteMenu`, `WebsitePage`, `WebsiteMedia`, `WebsiteSlider`, `WebsiteAnnouncement`, `WebsiteEvent`, `WebsiteGallery`, `WebsiteFaq`, `WebsiteTestimonial`, `WebsiteStaff`, `WebsiteContactMessage`, `WebsiteRedirect`, `WebsiteAnalytics`
+- `WebsitePage` 1:N `WebsiteSection`
+- `WebsiteSection` 1:N `WebsiteBlock`
 
 ## Indexes and performance
 
@@ -244,6 +250,8 @@ Important indexes in the schema:
 - `@@index([userId, createdAt])` on `ActivityLog`
 - `@@index([organizationId, portalType, accountId])` on portal session and preference tables
 - `@@index([organizationId, status])` on `ParentUser`, `StudentPortalAccount`, and `TeacherPortalAccount`
+- `@@index([organizationId, status])` on `Website`
+- `@@unique([websiteId, slug])` on `WebsitePage`
 
 ## Database setup
 
