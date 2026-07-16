@@ -298,15 +298,13 @@ describe('App shell', () => {
     expect(screen.getAllByRole('link', { name: /Announcements/i }).some((link) => link.getAttribute('href') === '/communication/announcements')).toBe(true);
   });
 
-  it('renders the parent portal workspace for portal users', async () => {
+  it('renders the communication messages workspace for authenticated sessions', async () => {
     mockFetch.mockImplementation((input: RequestInfo) => {
       const url = typeof input === 'string' ? input : input.url;
       if (url.includes('/api/auth/me')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Parent User', email: 'parent@example.com', role: 'PARENT', emailVerified: true }, role: 'PARENT', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Comm User', email: 'comm@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
       }
-      if (url.includes('/api/portal/parent/dashboard')) {
-        return Promise.resolve({ ok: true, json: () => Promise.resolve({ students: [], metrics: { children: 0, attendance: 0, pendingFees: 0 } }) });
-      }
+      if (url.includes('/api/communication/messages')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ messages: [] }) });
       if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
       if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
       if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
@@ -314,7 +312,35 @@ describe('App shell', () => {
     });
 
     render(
-      <MemoryRouter initialEntries={['/portal/parent/dashboard']}>
+      <MemoryRouter initialEntries={['/communication/messages']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Messages' })).toBeInTheDocument();
+  });
+
+  it('renders the parent portal workspace for portal users', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Parent User', email: 'parent@example.com', role: 'PARENT', emailVerified: true }, role: 'PARENT', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/parent/profile')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ parent: { students: [] }, account: null }) });
+      if (url.includes('/api/parent/student')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ students: [] }) });
+      if (url.includes('/api/parent/attendance')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ attendance: [] }) });
+      if (url.includes('/api/parent/fees')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ invoices: [], payments: [] }) });
+      if (url.includes('/api/parent/results')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ results: [] }) });
+      if (url.includes('/api/parent/certificates')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ certificates: [] }) });
+      if (url.includes('/api/parent/announcements')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ announcements: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/parent/dashboard']}>
         <App />
       </MemoryRouter>,
     );
@@ -389,5 +415,30 @@ describe('App shell', () => {
     );
 
     expect(await screen.findByText(/Executive Dashboard/i)).toBeInTheDocument();
+  });
+
+  it('renders the public admissions and admin admissions routes', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Admissions User', email: 'admissions@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['auth:me'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/admissions/programs')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ programs: [{ id: '1', name: 'Hifz', description: 'Admission ready', department: { name: 'General' } }] }) });
+      if (url.includes('/api/admissions/forms')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ forms: [] }) });
+      if (url.includes('/api/admissions/reports/summary')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ summary: { total: 1, admitted: 1 } }) });
+      if (url.includes('/api/admissions/reports/conversion')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ conversion: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/admissions']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole('heading', { name: 'Admissions' })).toBeInTheDocument();
   });
 });

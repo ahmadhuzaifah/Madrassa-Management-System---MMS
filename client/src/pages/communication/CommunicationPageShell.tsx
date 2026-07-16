@@ -10,6 +10,7 @@ export function CommunicationPageShell({ title, description, children }: { title
       <div className="button-row">
         <Link className="ghost-button" to="/communication/announcements">Announcements</Link>
         <Link className="ghost-button" to="/communication/templates">Templates</Link>
+        <Link className="ghost-button" to="/communication/messages">Messages</Link>
         <Link className="ghost-button" to="/communication/groups">Groups</Link>
         <Link className="ghost-button" to="/communication/send">Send</Link>
         <Link className="ghost-button" to="/communication/scheduled">Scheduled</Link>

@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError, asyncHandler } from '../lib/errors.js';
 import { logActivity } from '../lib/activity.js';
+import { notifyOrganizationUsers, notifyStudentGuardians } from '../lib/communication-notifications.js';
 
 const router = Router();
 const channelSchema = z.enum(['SMS', 'EMAIL', 'WHATSAPP', 'IN_APP']);
@@ -21,19 +22,40 @@ router.use(requireAuth);
 
 const templateSchema = z.object({
   name: z.string().min(2),
-  channel: channelSchema,
+  type: channelSchema.optional(),
+  channel: channelSchema.optional(),
   subject: z.string().optional().nullable(),
-  content: z.string().min(1),
+  body: z.string().optional(),
+  content: z.string().optional(),
   variables: z.string().optional().nullable(),
   isActive: z.boolean().optional(),
 });
 const announcementSchema = z.object({
   title: z.string().min(2),
   content: z.string().min(1),
-  targetAudience: z.string().min(2),
+  audience: z.string().optional(),
+  targetAudience: z.string().optional(),
   status: statusSchema.optional(),
+  publishDate: z.string().optional().nullable(),
+  expiryDate: z.string().optional().nullable(),
   publishAt: z.string().optional().nullable(),
   expiresAt: z.string().optional().nullable(),
+});
+const parentCreateSchema = z.object({
+  guardianId: z.string(),
+  userId: z.string(),
+  studentIds: z.array(z.string()).optional(),
+  enabled: z.boolean().optional(),
+  attendanceAlerts: z.boolean().optional(),
+  feeAlerts: z.boolean().optional(),
+  examAlerts: z.boolean().optional(),
+  announcementAlerts: z.boolean().optional(),
+});
+const parentPreferenceSchema = z.object({
+  attendanceAlerts: z.boolean().optional(),
+  feeAlerts: z.boolean().optional(),
+  examAlerts: z.boolean().optional(),
+  announcementAlerts: z.boolean().optional(),
 });
 const groupSchema = z.object({ name: z.string().min(2), description: z.string().optional().nullable(), filterType: z.string().optional(), filterValue: z.string().optional().nullable() });
 const providerSchema = z.object({ sms: z.any().optional(), email: z.any().optional(), whatsapp: z.any().optional() });
@@ -54,15 +76,21 @@ router.post('/announcements', asyncHandler(async (req: AuthenticatedRequest, res
   const parsed = announcementSchema.safeParse(req.body);
   if (!parsed.success) throw new AppError(400, 'Invalid announcement payload', 'VALIDATION_ERROR', parsed.error.flatten());
   const { organization } = await getWorkspace(req.user!.id);
+  const audience = parsed.data.audience ?? parsed.data.targetAudience ?? 'All';
+  const publishDate = parsed.data.publishDate ?? parsed.data.publishAt ?? null;
+  const expiryDate = parsed.data.expiryDate ?? parsed.data.expiresAt ?? null;
   const announcement = await prisma.announcement.create({
     data: {
       organizationId: organization.id,
       title: parsed.data.title,
       content: parsed.data.content,
-      targetAudience: parsed.data.targetAudience,
+      targetAudience: audience,
+      audience,
       status: parsed.data.status ?? 'DRAFT',
-      publishAt: parsed.data.publishAt ? new Date(parsed.data.publishAt) : null,
-      expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : null,
+      publishAt: publishDate ? new Date(publishDate) : null,
+      publishDate: publishDate ? new Date(publishDate) : null,
+      expiresAt: expiryDate ? new Date(expiryDate) : null,
+      expiryDate: expiryDate ? new Date(expiryDate) : null,
       createdBy: req.user!.id,
     },
   });
@@ -75,7 +103,18 @@ router.patch('/announcements/:id', asyncHandler(async (req: AuthenticatedRequest
   const { organization } = await getWorkspace(req.user!.id);
   const announcement = await prisma.announcement.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
   if (!announcement) throw new AppError(404, 'Announcement not found', 'NOT_FOUND');
-  const updated = await prisma.announcement.update({ where: { id: announcement.id }, data: { ...parsed.data, publishAt: parsed.data.publishAt ? new Date(parsed.data.publishAt) : undefined, expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined } });
+  const audience = parsed.data.audience ?? parsed.data.targetAudience;
+  const publishDate = parsed.data.publishDate ?? parsed.data.publishAt;
+  const expiryDate = parsed.data.expiryDate ?? parsed.data.expiresAt;
+  const updated = await prisma.announcement.update({
+    where: { id: announcement.id },
+    data: {
+      ...parsed.data,
+      ...(audience ? { audience, targetAudience: audience } : {}),
+      ...(publishDate ? { publishAt: new Date(publishDate), publishDate: new Date(publishDate) } : {}),
+      ...(expiryDate ? { expiresAt: new Date(expiryDate), expiryDate: new Date(expiryDate) } : {}),
+    },
+  });
   res.json({ announcement: updated });
 }));
 
@@ -89,7 +128,7 @@ router.delete('/announcements/:id', asyncHandler(async (req: AuthenticatedReques
 
 router.get('/templates', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const { organization } = await getWorkspace(req.user!.id);
-  const templates = await prisma.notificationTemplate.findMany({ where: { organizationId: organization.id }, orderBy: { createdAt: 'desc' } });
+  const templates = await prisma.communicationTemplate.findMany({ where: { organizationId: organization.id }, orderBy: { createdAt: 'desc' } });
   res.json({ templates });
 }));
 
@@ -97,7 +136,9 @@ router.post('/templates', asyncHandler(async (req: AuthenticatedRequest, res) =>
   const parsed = templateSchema.safeParse(req.body);
   if (!parsed.success) throw new AppError(400, 'Invalid template payload', 'VALIDATION_ERROR', parsed.error.flatten());
   const { organization } = await getWorkspace(req.user!.id);
-  const template = await prisma.notificationTemplate.create({ data: { organizationId: organization.id, ...parsed.data } });
+  const type = parsed.data.type ?? parsed.data.channel ?? 'IN_APP';
+  const body = parsed.data.body ?? parsed.data.content ?? '';
+  const template = await prisma.communicationTemplate.create({ data: { organizationId: organization.id, name: parsed.data.name, type, subject: parsed.data.subject ?? null, body, variables: parsed.data.variables ?? null, createdBy: req.user!.id } });
   res.status(201).json({ template });
 }));
 
@@ -105,17 +146,26 @@ router.patch('/templates/:id', asyncHandler(async (req: AuthenticatedRequest, re
   const parsed = templateSchema.partial().safeParse(req.body);
   if (!parsed.success) throw new AppError(400, 'Invalid template payload', 'VALIDATION_ERROR', parsed.error.flatten());
   const { organization } = await getWorkspace(req.user!.id);
-  const template = await prisma.notificationTemplate.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
+  const template = await prisma.communicationTemplate.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
   if (!template) throw new AppError(404, 'Template not found', 'NOT_FOUND');
-  const updated = await prisma.notificationTemplate.update({ where: { id: template.id }, data: parsed.data });
+  const updated = await prisma.communicationTemplate.update({
+    where: { id: template.id },
+    data: {
+      ...(parsed.data.name ? { name: parsed.data.name } : {}),
+      ...(parsed.data.type ?? parsed.data.channel ? { type: parsed.data.type ?? parsed.data.channel } : {}),
+      ...(parsed.data.subject !== undefined ? { subject: parsed.data.subject ?? null } : {}),
+      ...(parsed.data.body ?? parsed.data.content ? { body: parsed.data.body ?? parsed.data.content } : {}),
+      ...(parsed.data.variables !== undefined ? { variables: parsed.data.variables ?? null } : {}),
+    },
+  });
   res.json({ template: updated });
 }));
 
 router.delete('/templates/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const { organization } = await getWorkspace(req.user!.id);
-  const template = await prisma.notificationTemplate.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
+  const template = await prisma.communicationTemplate.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
   if (!template) throw new AppError(404, 'Template not found', 'NOT_FOUND');
-  await prisma.notificationTemplate.delete({ where: { id: template.id } });
+  await prisma.communicationTemplate.delete({ where: { id: template.id } });
   res.json({ message: 'Template deleted' });
 }));
 
@@ -219,10 +269,65 @@ router.post('/send', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const members = await prisma.organizationMember.findMany({ where: { organizationId: organization.id }, include: { user: true } });
   const userIds = members.map((m: { userId: string }) => m.userId);
   const queue = await prisma.messageQueue.create({ data: { organizationId: organization.id, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: parsed.data.recipientId ?? null, subject: parsed.data.subject ?? null, content: parsed.data.content, status: 'SENT', sentAt: new Date() } });
+  await prisma.message.create({
+    data: {
+      organizationId: organization.id,
+      senderId: req.user!.id,
+      receiverType: parsed.data.recipientType === 'GROUP' ? 'ALL' : parsed.data.recipientType,
+      subject: parsed.data.subject ?? null,
+      content: parsed.data.content,
+      channel: parsed.data.channel,
+      status: 'SENT',
+      sentAt: new Date(),
+      recipients: { create: userIds.map((userId: string) => ({ userId, deliveryStatus: 'DELIVERED' })) },
+    },
+  });
   await deliverToMembers({ organizationId: organization.id, title: parsed.data.subject ?? 'Communication', message: parsed.data.content, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: parsed.data.recipientId ?? null, userIds, providerType: parsed.data.channel, subject: parsed.data.subject ?? null });
   await prisma.messageLog.createMany({ data: userIds.map((userId: string) => ({ organizationId: organization.id, queueId: queue.id, providerType: parsed.data.channel, channel: parsed.data.channel, recipientType: parsed.data.recipientType, recipientId: userId, subject: parsed.data.subject ?? null, content: parsed.data.content, status: 'DELIVERED', deliveredAt: new Date() })) });
   await logActivity({ userId: req.user!.id, action: 'communication_message_sent', entityType: 'messageQueue', entityId: queue.id });
   res.status(201).json({ queue });
+}));
+
+router.get('/messages', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const { organization } = await getWorkspace(req.user!.id);
+  const messages = await prisma.message.findMany({ where: { organizationId: organization.id }, include: { recipients: true }, orderBy: { createdAt: 'desc' } });
+  res.json({ messages });
+}));
+
+router.post('/messages', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const parsed = z.object({
+    subject: z.string().optional().nullable(),
+    content: z.string().min(1),
+    channel: channelSchema,
+    receiverType: z.enum(['STUDENT', 'GUARDIAN', 'STAFF', 'ALL']),
+    recipientIds: z.array(z.string()).optional(),
+  }).safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, 'Invalid message payload', 'VALIDATION_ERROR', parsed.error.flatten());
+  const { organization } = await getWorkspace(req.user!.id);
+  const message = await prisma.message.create({
+    data: {
+      organizationId: organization.id,
+      senderId: req.user!.id,
+      receiverType: parsed.data.receiverType,
+      subject: parsed.data.subject ?? null,
+      content: parsed.data.content,
+      channel: parsed.data.channel,
+      status: 'SENT',
+      sentAt: new Date(),
+      recipients: {
+        create: (parsed.data.recipientIds?.length ? parsed.data.recipientIds : [req.user!.id]).map((recipientId) => ({ userId: recipientId, deliveryStatus: 'DELIVERED' })),
+      },
+    },
+  });
+  await logActivity({ userId: req.user!.id, action: 'communication_message_created', entityType: 'message', entityId: message.id });
+  res.status(201).json({ message });
+}));
+
+router.get('/messages/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const { organization } = await getWorkspace(req.user!.id);
+  const message = await prisma.message.findFirst({ where: { id: req.params.id, organizationId: organization.id }, include: { recipients: true } });
+  if (!message) throw new AppError(404, 'Message not found', 'NOT_FOUND');
+  res.json({ message });
 }));
 
 router.post('/schedule', asyncHandler(async (req: AuthenticatedRequest, res) => {
@@ -248,6 +353,70 @@ router.get('/history', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const { organization } = await getWorkspace(req.user!.id);
   const messages = await prisma.messageLog.findMany({ where: { organizationId: organization.id }, orderBy: { createdAt: 'desc' } });
   res.json({ messages });
+}));
+
+router.post('/parents/create', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const parsed = parentCreateSchema.safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, 'Invalid parent payload', 'VALIDATION_ERROR', parsed.error.flatten());
+  const { organization } = await getWorkspace(req.user!.id);
+  const guardian = await prisma.guardian.findFirst({ where: { id: parsed.data.guardianId, madrassa: { organizationId: organization.id } } });
+  if (!guardian) throw new AppError(404, 'Guardian not found', 'NOT_FOUND');
+  const user = await prisma.user.findUnique({ where: { id: parsed.data.userId } });
+  if (!user) throw new AppError(404, 'User not found', 'NOT_FOUND');
+  const parentAccount = await prisma.parentAccount.upsert({
+    where: { organizationId_guardianId: { organizationId: organization.id, guardianId: guardian.id } },
+    update: { userId: user.id, enabled: parsed.data.enabled ?? true },
+    create: { organizationId: organization.id, guardianId: guardian.id, userId: user.id, enabled: parsed.data.enabled ?? true },
+  });
+  const parentUser = await prisma.parentUser.upsert({
+    where: { organizationId_userId: { organizationId: organization.id, userId: user.id } },
+    update: { displayName: guardian.name },
+    create: { organizationId: organization.id, userId: user.id, displayName: guardian.name },
+  });
+  const preference = await prisma.parentNotificationPreference.upsert({
+    where: { parentAccountId: parentAccount.id },
+    update: {
+      attendanceAlerts: parsed.data.attendanceAlerts ?? true,
+      feeAlerts: parsed.data.feeAlerts ?? true,
+      examAlerts: parsed.data.examAlerts ?? true,
+      announcementAlerts: parsed.data.announcementAlerts ?? true,
+    },
+    create: {
+      parentAccountId: parentAccount.id,
+      attendanceAlerts: parsed.data.attendanceAlerts ?? true,
+      feeAlerts: parsed.data.feeAlerts ?? true,
+      examAlerts: parsed.data.examAlerts ?? true,
+      announcementAlerts: parsed.data.announcementAlerts ?? true,
+    },
+  });
+  if (parsed.data.studentIds?.length) {
+    await prisma.parentStudent.deleteMany({ where: { parentUserId: parentUser.id } });
+    await prisma.parentStudent.createMany({
+      data: parsed.data.studentIds.map((studentId) => ({ organizationId: organization.id, parentUserId: parentUser.id, studentId, relationship: 'Parent' })),
+    });
+  }
+  res.status(201).json({ parentAccount, preference });
+}));
+
+router.get('/parents/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const { organization } = await getWorkspace(req.user!.id);
+  const parentAccount = await prisma.parentAccount.findFirst({ where: { id: req.params.id, organizationId: organization.id }, include: { guardian: true, user: true, preference: true } });
+  if (!parentAccount) throw new AppError(404, 'Parent account not found', 'NOT_FOUND');
+  res.json({ parentAccount });
+}));
+
+router.patch('/parents/:id/preferences', asyncHandler(async (req: AuthenticatedRequest, res) => {
+  const parsed = parentPreferenceSchema.safeParse(req.body);
+  if (!parsed.success) throw new AppError(400, 'Invalid preference payload', 'VALIDATION_ERROR', parsed.error.flatten());
+  const { organization } = await getWorkspace(req.user!.id);
+  const parentAccount = await prisma.parentAccount.findFirst({ where: { id: req.params.id, organizationId: organization.id } });
+  if (!parentAccount) throw new AppError(404, 'Parent account not found', 'NOT_FOUND');
+  const preference = await prisma.parentNotificationPreference.upsert({
+    where: { parentAccountId: parentAccount.id },
+    update: parsed.data,
+    create: { parentAccountId: parentAccount.id, ...parsed.data },
+  });
+  res.json({ preference });
 }));
 
 export default router;

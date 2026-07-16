@@ -96,6 +96,7 @@ import { LibraryIssuesPage } from './pages/library/LibraryIssuesPage';
 import { LibraryReportsPage } from './pages/library/LibraryReportsPage';
 import { CommunicationHomePage } from './pages/communication/CommunicationHomePage';
 import { CommunicationAnnouncementsPage } from './pages/communication/CommunicationAnnouncementsPage';
+import { CommunicationMessagesPage } from './pages/communication/CommunicationMessagesPage';
 import { CommunicationTemplatesPage } from './pages/communication/CommunicationTemplatesPage';
 import { CommunicationGroupsPage } from './pages/communication/CommunicationGroupsPage';
 import { CommunicationSendPage } from './pages/communication/CommunicationSendPage';
@@ -104,8 +105,10 @@ import { CommunicationHistoryPage } from './pages/communication/CommunicationHis
 import { CommunicationProvidersPage } from './pages/communication/CommunicationProvidersPage';
 import { CmsShellPage, PublicPage } from './pages/cms/CmsPages';
 import { AnalyticsDashboardPage, AnalyticsStudentsPage, AnalyticsAttendancePage, AnalyticsFinancePage, AnalyticsAcademicPage, AnalyticsHrPage, AnalyticsInventoryPage, AnalyticsLibraryPage, AnalyticsCustomReportsPage, AnalyticsScheduledPage, AnalyticsExportsPage } from './pages/analytics/AnalyticsPages';
+import { PublicAdmissionsPage, AdmissionApplyPage, AdmissionStatusPage, AdmissionsAdminHomePage, AdmissionsApplicationsPage, AdmissionApplicationDetailPage, AdmissionFormsPage, AdmissionReportsPage } from './pages/admissions/AdmissionsPages';
 import { PortalLayout } from './layouts/PortalLayout';
 import { ParentPortalHomePage, ParentPortalDashboardPage, ParentPortalAttendancePage, ParentPortalFeesPage, ParentPortalResultsPage, ParentPortalCertificatesPage } from './pages/portal/ParentPortalPages';
+import { ParentPortalHomePage as ParentPortalAliasHomePage, ParentPortalDashboardPage as ParentPortalAliasDashboardPage, ParentPortalStudentPage, ParentPortalAttendancePage as ParentPortalAliasAttendancePage, ParentPortalFeesPage as ParentPortalAliasFeesPage, ParentPortalResultsPage as ParentPortalAliasResultsPage, ParentPortalCertificatesPage as ParentPortalAliasCertificatesPage, ParentPortalAnnouncementsPage } from './pages/parent/ParentPortalPages';
 import { StudentPortalHomePage, StudentPortalDashboardPage, StudentPortalProfilePage, StudentPortalAttendancePage, StudentPortalResultsPage, StudentPortalFeesPage, StudentPortalLibraryPage, StudentPortalCertificatesPage } from './pages/portal/StudentPortalPages';
 import { TeacherPortalHomePage, TeacherPortalDashboardPage, TeacherPortalClassesPage, TeacherPortalAttendancePage, TeacherPortalResultsPage, TeacherPortalTimetablePage, TeacherPortalPayrollPage } from './pages/portal/TeacherPortalPages';
 
@@ -135,7 +138,9 @@ function App() {
           element={<VerifyEmailPage />}
         />
         <Route path="/about" element={<PublicPage slug="about" title="About" />} />
-        <Route path="/admissions" element={<PublicPage slug="admissions" title="Admissions" />} />
+        <Route path="/admissions" element={<PublicAdmissionsPage />} />
+        <Route path="/admissions/apply" element={<AdmissionApplyPage />} />
+        <Route path="/admissions/status" element={<AdmissionStatusPage />} />
         <Route path="/programs" element={<PublicPage slug="programs" title="Programs" />} />
         <Route path="/courses" element={<PublicPage slug="courses" title="Courses" />} />
         <Route path="/gallery" element={<PublicPage slug="gallery" title="Gallery" />} />
@@ -270,6 +275,7 @@ function App() {
           <Route path="/inventory/reports" element={<ProtectedRoute><InventoryReportsPage /></ProtectedRoute>} />
           <Route path="/communication" element={<ProtectedRoute><CommunicationHomePage /></ProtectedRoute>} />
           <Route path="/communication/announcements" element={<ProtectedRoute><CommunicationAnnouncementsPage /></ProtectedRoute>} />
+          <Route path="/communication/messages" element={<ProtectedRoute><CommunicationMessagesPage /></ProtectedRoute>} />
           <Route path="/communication/templates" element={<ProtectedRoute><CommunicationTemplatesPage /></ProtectedRoute>} />
           <Route path="/communication/groups" element={<ProtectedRoute><CommunicationGroupsPage /></ProtectedRoute>} />
           <Route path="/communication/send" element={<ProtectedRoute><CommunicationSendPage /></ProtectedRoute>} />
@@ -301,6 +307,11 @@ function App() {
           <Route path="/analytics/custom-reports" element={<ProtectedRoute><AnalyticsCustomReportsPage /></ProtectedRoute>} />
           <Route path="/analytics/scheduled" element={<ProtectedRoute><AnalyticsScheduledPage /></ProtectedRoute>} />
           <Route path="/analytics/exports" element={<ProtectedRoute><AnalyticsExportsPage /></ProtectedRoute>} />
+          <Route path="/admissions/admin" element={<ProtectedRoute><AdmissionsAdminHomePage /></ProtectedRoute>} />
+          <Route path="/admissions/admin/applications" element={<ProtectedRoute><AdmissionsApplicationsPage /></ProtectedRoute>} />
+          <Route path="/admissions/admin/applications/:id" element={<ProtectedRoute><AdmissionApplicationDetailPage /></ProtectedRoute>} />
+          <Route path="/admissions/admin/forms" element={<ProtectedRoute><AdmissionFormsPage /></ProtectedRoute>} />
+          <Route path="/admissions/admin/reports" element={<ProtectedRoute><AdmissionReportsPage /></ProtectedRoute>} />
           <Route path="/portal/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
           <Route index element={<ParentPortalHomePage />} />
           <Route path="dashboard" element={<ParentPortalDashboardPage />} />
@@ -319,7 +330,7 @@ function App() {
           <Route path="library" element={<StudentPortalLibraryPage />} />
           <Route path="certificates" element={<StudentPortalCertificatesPage />} />
         </Route>
-        <Route path="/portal/teacher" element={<ProtectedRoute roles={['TEACHER', 'ADMIN']}><PortalLayout title="Teacher Portal" subtitle="Manage classes, attendance, results, timetable, and payroll." /></ProtectedRoute>}>
+          <Route path="/portal/teacher" element={<ProtectedRoute roles={['TEACHER', 'ADMIN']}><PortalLayout title="Teacher Portal" subtitle="Manage classes, attendance, results, timetable, and payroll." /></ProtectedRoute>}>
           <Route index element={<TeacherPortalHomePage />} />
           <Route path="dashboard" element={<TeacherPortalDashboardPage />} />
           <Route path="classes" element={<TeacherPortalClassesPage />} />
@@ -337,6 +348,16 @@ function App() {
           <Route path="/library/members" element={<ProtectedRoute><LibraryMembersPage /></ProtectedRoute>} />
           <Route path="/library/issues" element={<ProtectedRoute><LibraryIssuesPage /></ProtectedRoute>} />
           <Route path="/library/reports" element={<ProtectedRoute><LibraryReportsPage /></ProtectedRoute>} />
+        </Route>
+        <Route path="/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
+          <Route index element={<ParentPortalAliasHomePage />} />
+          <Route path="dashboard" element={<ParentPortalAliasDashboardPage />} />
+          <Route path="student" element={<ParentPortalStudentPage />} />
+          <Route path="attendance" element={<ParentPortalAliasAttendancePage />} />
+          <Route path="fees" element={<ParentPortalAliasFeesPage />} />
+          <Route path="results" element={<ParentPortalAliasResultsPage />} />
+          <Route path="certificates" element={<ParentPortalAliasCertificatesPage />} />
+          <Route path="announcements" element={<ParentPortalAnnouncementsPage />} />
         </Route>
       </Routes>
     </AppProvider>

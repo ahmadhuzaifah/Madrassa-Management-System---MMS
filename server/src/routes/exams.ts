@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError, asyncHandler } from '../lib/errors.js';
 import { logActivity } from '../lib/activity.js';
+import { notifyStudentGuardians } from '../lib/communication-notifications.js';
 
 const router = Router();
 const examTypes = z.enum(['MONTHLY', 'QUARTERLY', 'HALF_YEARLY', 'ANNUAL', 'FINAL']);
@@ -116,8 +117,15 @@ router.post('/:id/results', asyncHandler(async (req: AuthenticatedRequest, res) 
     update: { totalMarks: summary.total, obtainedMarks: summary.obtained, percentage: summary.total ? (summary.obtained / summary.total) * 100 : 0, grade: gradeFor(summary.total ? (summary.obtained / summary.total) * 100 : 0, gradeScales), position: index + 1 },
   })));
   await logActivity({ userId: req.user!.id, action: 'exam_results_updated', entityType: 'exam', entityId: exam.id });
+  await Promise.all(created.map((result: { studentId: string }) => notifyStudentGuardians({
+    organizationId: madrassa.organizationId,
+    studentId: result.studentId,
+    title: 'Exam results published',
+    content: `Results were published for ${exam.name}.`,
+    channel: 'IN_APP',
+  })));
   res.status(201).json({ results: created });
-}));
+})); 
 
 router.get('/student/:id', asyncHandler(async (req: AuthenticatedRequest, res) => {
   const { madrassa } = await getWorkspace(req.user!.id);

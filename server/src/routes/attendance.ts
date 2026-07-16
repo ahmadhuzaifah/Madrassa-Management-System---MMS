@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError, asyncHandler } from '../lib/errors.js';
 import { logActivity } from '../lib/activity.js';
+import { notifyStudentGuardians } from '../lib/communication-notifications.js';
 
 const router = Router();
 
@@ -103,6 +104,15 @@ router.post('/', asyncHandler(async (req: AuthenticatedRequest, res) => {
     return attendance;
   })));
   await logActivity({ userId: req.user!.id, action: 'attendance_marked', entityType: 'attendance', entityId: records[0]?.id });
+  await Promise.all(records.filter((record: { status: string; studentId: string }) => record.status === 'ABSENT').map((record: { studentId: string }) =>
+    notifyStudentGuardians({
+      organizationId: organization.id,
+      studentId: record.studentId,
+      title: 'Attendance update',
+      content: 'A student was marked absent today.',
+      channel: 'IN_APP',
+    }),
+  ));
   res.status(201).json({ records });
 }));
 

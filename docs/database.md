@@ -191,7 +191,9 @@ The library module stores organization-scoped book catalog data, members, circul
 
 The communication module stores announcement content, reusable templates, recipient groups, provider settings, queue jobs, schedules, message logs, and in-app notifications:
 
-- `NotificationTemplate` stores reusable SMS, email, WhatsApp, and in-app content.
+- `CommunicationTemplate` stores reusable SMS, email, WhatsApp, and in-app content.
+- `Message` stores sent communication records and delivery recipients.
+- `MessageRecipient` stores per-recipient delivery and read state.
 - `Announcement` stores published or scheduled workspace announcements.
 - `SmsProvider`, `EmailProvider`, and `WhatsappProvider` store provider configuration.
 - `CommunicationGroup` stores custom recipient groups.
@@ -199,6 +201,8 @@ The communication module stores announcement content, reusable templates, recipi
 - `MessageQueue` stores queued outbound messages.
 - `ScheduledMessage` stores delayed or recurring sends.
 - `MessageLog` stores delivery history and status.
+- `ParentAccount` stores parent login linkage for guardians.
+- `ParentNotificationPreference` stores parent alert preferences.
 
 ### FileUpload
 
@@ -230,6 +234,9 @@ Secure token record for email verification.
 - `User` 1:N `PortalPreference`
 - `User` 1:N `PortalDevice`
 - `ParentUser` 1:N `ParentStudent`
+- `Guardian` 1:N `ParentAccount`
+- `User` 1:N `ParentAccount`
+- `ParentAccount` 1:1 `ParentNotificationPreference`
 - `ParentStudent` N:1 `Student`
 - `StudentPortalAccount` N:1 `Student`
 - `TeacherPortalAccount` N:1 `Employee`
@@ -238,6 +245,28 @@ Secure token record for email verification.
 - `Website` 1:1 `WebsiteTheme`
 - `Website` 1:N `WebsiteMenu`, `WebsitePage`, `WebsiteMedia`, `WebsiteSlider`, `WebsiteAnnouncement`, `WebsiteEvent`, `WebsiteGallery`, `WebsiteFaq`, `WebsiteTestimonial`, `WebsiteStaff`, `WebsiteContactMessage`, `WebsiteRedirect`, `WebsiteAnalytics`
 - `WebsitePage` 1:N `WebsiteSection`
+- `AdmissionSession` 1:N `AdmissionForm`, `AdmissionApplication`
+- `AdmissionForm` 1:N `AdmissionField`, `AdmissionApplication`
+- `Applicant` 1:1 `ApplicantGuardian`
+- `Applicant` 1:N `ApplicantDocument`, `AdmissionApplication`, `AdmissionInterview`, `AdmissionPayment`, `AdmissionDecision`, `AdmissionActivityLog`
+- `AdmissionApplication` 1:1 `AdmissionInterview`, `AdmissionPayment`, `AdmissionDecision`
+
+## Admissions module
+
+The admissions module stores public applications, review workflows, and conversion data:
+
+- `AdmissionSession` stores admission cycles and application counters.
+- `AdmissionForm` stores configurable public or internal forms.
+- `AdmissionField` stores custom form fields and options.
+- `Applicant` stores prospective student identity and tracking numbers.
+- `ApplicantGuardian` stores guardian information for each applicant.
+- `ApplicantDocument` stores uploaded documents and verification states.
+- `AdmissionApplication` stores review state, branch/program assignments, and conversion links.
+- `AdmissionStatus` stores the available workflow statuses.
+- `AdmissionInterview` stores scheduling details and interviewer notes.
+- `AdmissionPayment` stores application and admission fee records.
+- `AdmissionDecision` stores approval, rejection, and waitlist decisions.
+- `AdmissionActivityLog` stores applicant-specific audit history.
 - `WebsiteSection` 1:N `WebsiteBlock`
 - `Organization` 1:N `ReportTemplate`, `SavedReport`, `ReportSchedule`, `DashboardWidget`, `DashboardLayout`, `ReportExport`, `AnalyticsEvent`
 

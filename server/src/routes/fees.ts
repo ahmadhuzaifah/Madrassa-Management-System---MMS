@@ -4,6 +4,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError, asyncHandler } from '../lib/errors.js';
 import { logActivity } from '../lib/activity.js';
+import { notifyStudentGuardians } from '../lib/communication-notifications.js';
 
 const router = Router();
 
@@ -96,6 +97,15 @@ router.post('/payments', asyncHandler(async (req: AuthenticatedRequest, res) => 
   const status = due === 0 ? 'PAID' : paid > 0 ? 'PARTIAL' : 'UNPAID';
   const invoice = await prisma.feeInvoice.create({ data: { organizationId: organization.id, madrassaId: madrassa.id, studentId: student.id, invoiceNumber: receiptNumber.replace('RCPT', 'INV'), amount: due, dueDate: new Date(), status } });
   await logActivity({ userId: req.user!.id, action: 'fee_payment_received', entityType: 'feePayment', entityId: payment.id });
+  if (due > 0) {
+    await notifyStudentGuardians({
+      organizationId: organization.id,
+      studentId: student.id,
+      title: 'Fee reminder',
+      content: `Outstanding fee balance is ${due}.`,
+      channel: 'IN_APP',
+    });
+  }
   res.status(201).json({ payment, receipt: { receiptNumber, invoiceNumber: invoice.invoiceNumber } });
 }));
 

@@ -1,11 +1,19 @@
 # Communication Module
 
-The communication module manages announcements, message templates, communication groups, provider settings, outbound queues, schedules, delivery logs, and workspace notifications.
+The communication module handles workspace-wide messaging, templates, announcements, outbound message history, and parent account preferences.
 
-## Screens
+## Key Areas
+
+- Templates for SMS, email, WhatsApp, and in-app content.
+- Announcements for workspace-wide publishing.
+- Messages and message recipients for delivery history.
+- Parent accounts for guardian-linked access and notification preferences.
+
+## Routes
 
 - `/communication`
 - `/communication/announcements`
+- `/communication/messages`
 - `/communication/templates`
 - `/communication/groups`
 - `/communication/send`
@@ -13,8 +21,9 @@ The communication module manages announcements, message templates, communication
 - `/communication/history`
 - `/communication/providers`
 
-## Notes
+## Automatic Notifications
 
-- In-app notifications continue to use the existing notification system.
-- SMS, email, and WhatsApp providers are configurable records only.
-- No external provider API is hardcoded.
+- Attendance absences notify linked guardians.
+- Outstanding fee balances trigger reminders.
+- Exam result publication notifies linked guardians.
+- Certificate generation notifies linked guardians.

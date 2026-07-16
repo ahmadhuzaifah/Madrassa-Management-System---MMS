@@ -1094,6 +1094,30 @@ Lists communication provider settings.
 
 Creates or updates provider settings.
 
+### GET /api/communication/messages
+
+Lists workspace messages.
+
+### POST /api/communication/messages
+
+Creates a workspace message.
+
+### GET /api/communication/messages/:id
+
+Returns a message with recipients.
+
+### POST /api/communication/parents/create
+
+Creates or updates a parent account and preferences.
+
+### GET /api/communication/parents/:id
+
+Returns a parent account.
+
+### PATCH /api/communication/parents/:id/preferences
+
+Updates parent notification preferences.
+
 ## Portal
 
 ### POST /api/portal/login
@@ -1131,6 +1155,36 @@ Returns attendance records for linked children.
 ### GET /api/portal/parent/certificates
 
 Returns certificates for linked children.
+
+## Parent Portal
+
+### GET /api/parent/profile
+
+Returns the authenticated parent account and linked workspace data.
+
+### GET /api/parent/student
+
+Returns students linked to the parent account.
+
+### GET /api/parent/attendance
+
+Returns attendance records for linked students.
+
+### GET /api/parent/fees
+
+Returns fee invoices and payments for linked students.
+
+### GET /api/parent/results
+
+Returns result cards for linked students.
+
+### GET /api/parent/certificates
+
+Returns certificates for linked students.
+
+### GET /api/parent/announcements
+
+Returns workspace announcements for parents.
 
 ### GET /api/portal/student/dashboard
 
@@ -1295,3 +1349,73 @@ Returns library summary metrics.
 ### GET /api/reports/export
 
 Creates a report export record.
+
+## Admissions
+
+### GET /api/admissions/programs
+
+Returns public admission-ready programs.
+
+### POST /api/admissions/apply
+
+Submits a public admission application.
+
+### GET /api/admissions/status/:applicationNumber
+
+Returns public status details for an application number.
+
+### GET /api/admissions/forms
+
+Lists admission forms for the current workspace.
+
+### POST /api/admissions/forms
+
+Creates an admission form and optional custom fields.
+
+### PATCH /api/admissions/forms/:id
+
+Updates an admission form.
+
+### DELETE /api/admissions/forms/:id
+
+Deletes an admission form.
+
+### GET /api/admissions/applications
+
+Lists admission applications.
+
+### GET /api/admissions/applications/:id
+
+Returns application details.
+
+### PATCH /api/admissions/applications/:id/status
+
+Updates application status.
+
+### POST /api/admissions/applications/:id/interview
+
+Schedules an interview.
+
+### POST /api/admissions/applications/:id/documents
+
+Uploads applicant documents.
+
+### POST /api/admissions/applications/:id/approve
+
+Approves an applicant and converts them into a student.
+
+### POST /api/admissions/applications/:id/reject
+
+Rejects an applicant.
+
+### POST /api/admissions/applications/:id/convert
+
+Converts an applicant into a student.
+
+### GET /api/admissions/reports/summary
+
+Returns admission summary metrics.
+
+### GET /api/admissions/reports/conversion
+
+Returns admission conversion metrics.

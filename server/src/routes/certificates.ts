@@ -5,6 +5,7 @@ import { prisma } from '../lib/prisma.js';
 import { requireAuth, type AuthenticatedRequest } from '../middleware/auth.js';
 import { AppError, asyncHandler } from '../lib/errors.js';
 import { logActivity } from '../lib/activity.js';
+import { notifyStudentGuardians } from '../lib/communication-notifications.js';
 
 const router = Router();
 const types = z.enum(['HIFZ_COMPLETION', 'TAJWEED_COMPLETION', 'COURSE_COMPLETION', 'CHARACTER_CERTIFICATE', 'LEAVING_CERTIFICATE', 'CUSTOM']);
@@ -62,6 +63,13 @@ router.post('/generate', requireAuth, asyncHandler(async (req: AuthenticatedRequ
   const certificate = await prisma.certificate.create({ data: { organizationId: organization.id, studentId: student.id, templateId: parsed.data.templateId ?? null, certificateNumber: number, issueDate: new Date(), title: parsed.data.title, description: parsed.data.description ?? null, issuedBy: parsed.data.issuedBy ?? req.user!.id } });
   await prisma.certificateVerification.create({ data: { certificateId: certificate.id, verificationCode: crypto.randomBytes(16).toString('hex') } });
   await logActivity({ userId: req.user!.id, action: 'certificate_generated', entityType: 'certificate', entityId: certificate.id });
+  await notifyStudentGuardians({
+    organizationId: organization.id,
+    studentId: student.id,
+    title: 'Certificate ready',
+    content: `A certificate titled "${parsed.data.title}" has been issued.`,
+    channel: 'IN_APP',
+  });
   res.status(201).json({ certificate });
 }));
 router.get('/:id', requireAuth, asyncHandler(async (req: AuthenticatedRequest, res) => {

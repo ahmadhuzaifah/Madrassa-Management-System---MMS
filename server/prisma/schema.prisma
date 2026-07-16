@@ -36,6 +36,7 @@ model User {
   portalSessions       PortalSession[]
   portalPreferences    PortalPreference[]
   portalDevices        PortalDevice[]
+  parentAccounts       ParentAccount[]
   @@index([email])
 }
 
@@ -183,13 +184,60 @@ model Announcement {
   title         String
   content       String
   targetAudience String
+  audience      String?
   status        String   @default("DRAFT")
   publishAt     DateTime?
+  publishDate   DateTime?
   expiresAt     DateTime?
+  expiryDate    DateTime?
   createdBy     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@index([organizationId, status])
+}
+
+model CommunicationTemplate {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  type          String
+  subject       String?
+  body          String
+  variables     String?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name, type])
+  @@index([organizationId, type])
+}
+
+model Message {
+  id            String   @id @default(cuid())
+  organizationId String
+  senderId      String?
+  receiverType  String
+  subject       String?
+  content       String
+  channel       String
+  status        String   @default("PENDING")
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  recipients    MessageRecipient[]
+  @@index([organizationId, channel, status])
+}
+
+model MessageRecipient {
+  id            String   @id @default(cuid())
+  messageId     String
+  userId        String?
+  studentId     String?
+  guardianId    String?
+  deliveryStatus String  @default("PENDING")
+  readAt        DateTime?
+  createdAt     DateTime @default(now())
+  message       Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  @@index([messageId, deliveryStatus])
 }
 
 model SmsProvider {
@@ -297,6 +345,33 @@ model MessageLog {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   @@index([organizationId, status])
+}
+
+model ParentAccount {
+  id            String   @id @default(cuid())
+  organizationId String
+  guardianId    String
+  userId        String
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  guardian      Guardian @relation(fields: [guardianId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  preference    ParentNotificationPreference?
+  @@unique([organizationId, guardianId])
+  @@unique([organizationId, userId])
+}
+
+model ParentNotificationPreference {
+  id            String   @id @default(cuid())
+  parentAccountId String  @unique
+  attendanceAlerts Boolean @default(true)
+  feeAlerts      Boolean  @default(true)
+  examAlerts     Boolean  @default(true)
+  announcementAlerts Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  parentAccount  ParentAccount @relation(fields: [parentAccountId], references: [id], onDelete: Cascade)
 }
 
 model ActivityLog {
@@ -579,6 +654,7 @@ model Guardian {
   updatedAt     DateTime      @updatedAt
   madrassa      Madrassa      @relation(fields: [madrassaId], references: [id], onDelete: Cascade)
   students      Student[]
+  parentAccounts ParentAccount[]
   @@index([madrassaId])
 }
 
@@ -1883,4 +1959,209 @@ model LibraryFine {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   issue         BookIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+}
+
+model AdmissionSession {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  madrassaId         String
+  name               String
+  academicYearId     String?
+  startsAt           DateTime
+  endsAt             DateTime?
+  isActive           Boolean  @default(true)
+  applicationCounter Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  forms              AdmissionForm[]
+  applications       AdmissionApplication[]
+  @@unique([organizationId, name])
+  @@index([organizationId, isActive])
+}
+
+model AdmissionForm {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  sessionId          String
+  name               String
+  description        String?
+  isPublic           Boolean  @default(true)
+  status             String   @default("DRAFT")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  session            AdmissionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  fields             AdmissionField[]
+  applications       AdmissionApplication[]
+  @@unique([organizationId, name])
+  @@index([sessionId, status])
+}
+
+model AdmissionField {
+  id                 String   @id @default(cuid())
+  formId             String
+  label              String
+  fieldType          String
+  fieldKey           String
+  isRequired         Boolean  @default(false)
+  options            String?
+  sortOrder          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  form               AdmissionForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  @@unique([formId, fieldKey])
+}
+
+model Applicant {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  madrassaId         String
+  applicationNumber  String   @unique
+  fullName           String
+  fatherName         String?
+  dateOfBirth        DateTime?
+  gender             String?
+  email              String?
+  phone              String?
+  address            String?
+  city               String?
+  province           String?
+  source             String   @default("PUBLIC")
+  status             String   @default("DRAFT")
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  guardian           ApplicantGuardian?
+  documents          ApplicantDocument[]
+  applications       AdmissionApplication[]
+  activities         AdmissionActivityLog[]
+  interviews         AdmissionInterview[]
+  payments           AdmissionPayment[]
+  decisions          AdmissionDecision[]
+  @@index([organizationId, status])
+}
+
+model ApplicantGuardian {
+  id                 String   @id @default(cuid())
+  applicantId        String   @unique
+  name               String
+  relationship       String
+  phone              String?
+  email              String?
+  address            String?
+  occupation         String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  applicant          Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+}
+
+model ApplicantDocument {
+  id                 String   @id @default(cuid())
+  applicantId        String
+  documentName       String
+  fileUrl            String
+  verificationStatus String   @default("PENDING")
+  uploadedAt         DateTime @default(now())
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  applicant          Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  @@index([applicantId])
+}
+
+model AdmissionApplication {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  sessionId          String
+  formId             String?
+  applicantId        String
+  branchId           String?
+  departmentId       String?
+  programId          String?
+  classRoomId        String?
+  sectionId          String?
+  academicYearId     String?
+  applicationNumber  String   @unique
+  status             String   @default("DRAFT")
+  submittedAt        DateTime?
+  reviewedAt         DateTime?
+  admissionFeeAmount Int      @default(0)
+  feePaymentStatus   String   @default("UNPAID")
+  admissionStudentId String?
+  remarks            String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  session            AdmissionSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  form               AdmissionForm? @relation(fields: [formId], references: [id], onDelete: SetNull)
+  applicant          Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  interview          AdmissionInterview?
+  payment            AdmissionPayment?
+  decision           AdmissionDecision?
+  @@index([organizationId, status])
+  @@index([applicantId])
+}
+
+model AdmissionStatus {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  code               String
+  label              String
+  description        String?
+  sortOrder          Int      @default(0)
+  isDefault          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  @@unique([organizationId, code])
+}
+
+model AdmissionInterview {
+  id                 String   @id @default(cuid())
+  applicantId        String
+  applicationId      String   @unique
+  interviewDate     DateTime
+  interviewerName   String?
+  notes             String?
+  status            String   @default("SCHEDULED")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  applicant         Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  application       AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model AdmissionPayment {
+  id                 String   @id @default(cuid())
+  applicantId        String
+  applicationId      String   @unique
+  amount            Float
+  paymentMethod     String
+  receiptNumber     String   @unique
+  paymentDate       DateTime @default(now())
+  status            String   @default("PENDING")
+  financeTransactionId String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  applicant         Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  application       AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model AdmissionDecision {
+  id                 String   @id @default(cuid())
+  applicantId        String
+  applicationId      String   @unique
+  decision          String
+  decidedBy         String?
+  decidedAt         DateTime @default(now())
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  applicant         Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  application       AdmissionApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model AdmissionActivityLog {
+  id                 String   @id @default(cuid())
+  organizationId     String
+  applicantId        String
+  action             String
+  metadata           String?
+  createdAt          DateTime @default(now())
+  applicant          Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  @@index([organizationId, applicantId])
 }
