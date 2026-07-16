@@ -1007,4 +1007,78 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.books).toHaveLength(0);
   });
+
+  it('manages communication announcements, templates, groups, providers, and message history', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Comm Owner',
+        email: 'comm-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Comm Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Comm Madrassa' } });
+    const otherOwner = await prisma.user.create({ data: { name: 'Comm Other Owner', email: 'comm-other-owner@example.com', passwordHash: await hashPassword('SecurePass123!'), role: 'USER', status: 'ACTIVE', emailVerified: true, settings: { create: {} } } });
+    const otherOrg = await prisma.organization.create({ data: { name: 'Other Comm Workspace', ownerId: otherOwner.id, members: { create: { userId: otherOwner.id, role: 'OWNER' } } } });
+    await prisma.madrassa.create({ data: { organizationId: otherOrg.id, name: 'Other Comm Madrassa' } });
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const announcementRes = await request(app)
+      .post('/api/communication/announcements')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ title: 'Holiday', content: 'Closed tomorrow', targetAudience: 'Students', status: 'PUBLISHED' });
+    expect(announcementRes.status).toBe(201);
+
+    const templateRes = await request(app)
+      .post('/api/communication/templates')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Absence SMS', channel: 'SMS', subject: 'Absent', content: 'Student {{name}} is absent', variables: '{{name}}' });
+    expect(templateRes.status).toBe(201);
+
+    const groupRes = await request(app)
+      .post('/api/communication/groups')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Parents', description: 'Parent group', filterType: 'MANUAL' });
+    expect(groupRes.status).toBe(201);
+
+    const providerRes = await request(app)
+      .put('/api/communication/providers')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ sms: { name: 'Default SMS', isEnabled: true, config: { senderId: 'MMS' } }, email: { name: 'Default Email', isEnabled: true, config: { from: 'noreply@test' } }, whatsapp: { name: 'Default WhatsApp', isEnabled: false, config: {} } });
+    expect(providerRes.status).toBe(200);
+
+    const sendRes = await request(app)
+      .post('/api/communication/send')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ channel: 'IN_APP', content: 'Welcome to the new term', subject: 'Welcome', recipientType: 'GROUP', groupId: groupRes.body.group.id });
+    expect(sendRes.status).toBe(201);
+
+    const scheduleRes = await request(app)
+      .post('/api/communication/schedule')
+      .set('Cookie', [ownerCookie, `csrf_token=${csrfToken}`])
+      .set('X-CSRF-Token', csrfToken)
+      .send({ name: 'Morning reminder', channel: 'SMS', content: 'School starts at 8 AM', subject: 'Reminder', scheduledAt: '2026-07-20T08:00:00Z' });
+    expect(scheduleRes.status).toBe(201);
+
+    const historyRes = await request(app).get('/api/communication/history').set('Cookie', ownerCookie);
+    expect(historyRes.status).toBe(200);
+    expect(historyRes.body.messages.length).toBeGreaterThanOrEqual(1);
+
+    const notificationRes = await request(app).get('/api/communication/notifications').set('Cookie', ownerCookie);
+    expect(notificationRes.status).toBe(200);
+    expect(notificationRes.body.notifications.length).toBeGreaterThanOrEqual(1);
+
+    const isolation = await request(app).get('/api/communication/announcements').set('Cookie', `token=${createToken({ sub: otherOwner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+    expect(isolation.body.announcements).toHaveLength(0);
+  });
 });

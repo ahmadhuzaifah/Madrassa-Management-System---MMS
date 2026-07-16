@@ -187,6 +187,19 @@ The library module stores organization-scoped book catalog data, members, circul
 - `BookIssue` stores issue and return events.
 - `LibraryFine` stores fine assessments and payment state.
 
+## Communication module
+
+The communication module stores announcement content, reusable templates, recipient groups, provider settings, queue jobs, schedules, message logs, and in-app notifications:
+
+- `NotificationTemplate` stores reusable SMS, email, WhatsApp, and in-app content.
+- `Announcement` stores published or scheduled workspace announcements.
+- `SmsProvider`, `EmailProvider`, and `WhatsappProvider` store provider configuration.
+- `CommunicationGroup` stores custom recipient groups.
+- `CommunicationRecipient` stores group recipients.
+- `MessageQueue` stores queued outbound messages.
+- `ScheduledMessage` stores delayed or recurring sends.
+- `MessageLog` stores delivery history and status.
+
 ### FileUpload
 
 Uploaded files metadata with server-side storage path.

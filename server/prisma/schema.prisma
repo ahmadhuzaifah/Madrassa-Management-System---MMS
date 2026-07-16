@@ -156,6 +156,142 @@ model Notification {
   @@index([userId, isRead])
 }
 
+model NotificationTemplate {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  channel       String
+  subject       String?
+  content       String
+  variables     String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name, channel])
+}
+
+model Announcement {
+  id            String   @id @default(cuid())
+  organizationId String
+  title         String
+  content       String
+  targetAudience String
+  status        String   @default("DRAFT")
+  publishAt     DateTime?
+  expiresAt     DateTime?
+  createdBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId, status])
+}
+
+model SmsProvider {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  isEnabled     Boolean  @default(false)
+  config        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name])
+}
+
+model EmailProvider {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  isEnabled     Boolean  @default(false)
+  config        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name])
+}
+
+model WhatsappProvider {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  isEnabled     Boolean  @default(false)
+  config        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([organizationId, name])
+}
+
+model CommunicationGroup {
+  id            String   @id @default(cuid())
+  organizationId String
+  name          String
+  description   String?
+  filterType    String   @default("MANUAL")
+  filterValue   String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  recipients    CommunicationRecipient[]
+  @@unique([organizationId, name])
+}
+
+model CommunicationRecipient {
+  id            String   @id @default(cuid())
+  groupId       String
+  recipientType String
+  recipientId   String
+  displayName   String?
+  createdAt     DateTime @default(now())
+  group         CommunicationGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  @@unique([groupId, recipientType, recipientId])
+}
+
+model MessageQueue {
+  id            String   @id @default(cuid())
+  organizationId String
+  channel       String
+  recipientType String
+  recipientId   String?
+  subject       String?
+  content       String
+  status        String   @default("PENDING")
+  scheduledAt   DateTime?
+  sentAt        DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId, status])
+}
+
+model ScheduledMessage {
+  id            String   @id @default(cuid())
+  organizationId String
+  queueId       String?
+  name          String
+  channel       String
+  subject       String?
+  content       String
+  cron          String?
+  sendAt        DateTime?
+  status        String   @default("SCHEDULED")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId, status])
+}
+
+model MessageLog {
+  id            String   @id @default(cuid())
+  organizationId String
+  queueId       String?
+  providerType  String
+  channel       String
+  recipientType String
+  recipientId   String?
+  subject       String?
+  content       String
+  status        String   @default("PENDING")
+  errorMessage  String?
+  deliveredAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@index([organizationId, status])
+}
+
 model ActivityLog {
   id          String   @id @default(cuid())
   userId      String?

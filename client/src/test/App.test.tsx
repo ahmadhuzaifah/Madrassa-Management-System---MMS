@@ -274,4 +274,27 @@ describe('App shell', () => {
     expect(await screen.findByText(/Library Hub/i)).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: /^Books$/i }).some((link) => link.getAttribute('href') === '/library/books')).toBe(true);
   });
+
+  it('renders the communication workspace for authenticated sessions', async () => {
+    mockFetch.mockImplementation((input: RequestInfo) => {
+      const url = typeof input === 'string' ? input : input.url;
+      if (url.includes('/api/auth/me')) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ user: { profile: { id: '1', name: 'Comm User', email: 'comm@example.com', role: 'USER', emailVerified: true }, role: 'USER', permissions: ['students:read'], organization: null, settings: { theme: 'dark' }, emailVerified: true, status: 'ACTIVE' } }) });
+      }
+      if (url.includes('/api/communication')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ announcements: [], templates: [], groups: [], notifications: [], messages: [], sms: [], email: [], whatsapp: [] }) });
+      if (url.includes('/api/plans')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ plans: [] }) });
+      if (url.includes('/api/subscriptions/me')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ subscription: null }) });
+      if (url.includes('/api/notifications')) return Promise.resolve({ ok: true, json: () => Promise.resolve({ notifications: [] }) });
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+    });
+
+    render(
+      <MemoryRouter initialEntries={['/communication']}>
+        <App />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/Communication Hub/i)).toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: /Announcements/i }).some((link) => link.getAttribute('href') === '/communication/announcements')).toBe(true);
+  });
 });

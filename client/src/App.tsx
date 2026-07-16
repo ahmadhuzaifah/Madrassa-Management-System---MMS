@@ -94,6 +94,14 @@ import { LibraryPublishersPage } from './pages/library/LibraryPublishersPage';
 import { LibraryMembersPage } from './pages/library/LibraryMembersPage';
 import { LibraryIssuesPage } from './pages/library/LibraryIssuesPage';
 import { LibraryReportsPage } from './pages/library/LibraryReportsPage';
+import { CommunicationHomePage } from './pages/communication/CommunicationHomePage';
+import { CommunicationAnnouncementsPage } from './pages/communication/CommunicationAnnouncementsPage';
+import { CommunicationTemplatesPage } from './pages/communication/CommunicationTemplatesPage';
+import { CommunicationGroupsPage } from './pages/communication/CommunicationGroupsPage';
+import { CommunicationSendPage } from './pages/communication/CommunicationSendPage';
+import { CommunicationScheduledPage } from './pages/communication/CommunicationScheduledPage';
+import { CommunicationHistoryPage } from './pages/communication/CommunicationHistoryPage';
+import { CommunicationProvidersPage } from './pages/communication/CommunicationProvidersPage';
 
 function App() {
   return (
@@ -244,6 +252,14 @@ function App() {
           <Route path="/inventory/purchases" element={<ProtectedRoute><InventoryPurchasesPage /></ProtectedRoute>} />
           <Route path="/inventory/maintenance" element={<ProtectedRoute><InventoryMaintenancePage /></ProtectedRoute>} />
           <Route path="/inventory/reports" element={<ProtectedRoute><InventoryReportsPage /></ProtectedRoute>} />
+          <Route path="/communication" element={<ProtectedRoute><CommunicationHomePage /></ProtectedRoute>} />
+          <Route path="/communication/announcements" element={<ProtectedRoute><CommunicationAnnouncementsPage /></ProtectedRoute>} />
+          <Route path="/communication/templates" element={<ProtectedRoute><CommunicationTemplatesPage /></ProtectedRoute>} />
+          <Route path="/communication/groups" element={<ProtectedRoute><CommunicationGroupsPage /></ProtectedRoute>} />
+          <Route path="/communication/send" element={<ProtectedRoute><CommunicationSendPage /></ProtectedRoute>} />
+          <Route path="/communication/scheduled" element={<ProtectedRoute><CommunicationScheduledPage /></ProtectedRoute>} />
+          <Route path="/communication/history" element={<ProtectedRoute><CommunicationHistoryPage /></ProtectedRoute>} />
+          <Route path="/communication/providers" element={<ProtectedRoute><CommunicationProvidersPage /></ProtectedRoute>} />
           <Route path="/library" element={<ProtectedRoute><LibraryHomePage /></ProtectedRoute>} />
           <Route path="/library/books" element={<ProtectedRoute><LibraryBooksPage /></ProtectedRoute>} />
           <Route path="/library/books/:id" element={<ProtectedRoute><LibraryBookDetailPage /></ProtectedRoute>} />

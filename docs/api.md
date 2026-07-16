@@ -1007,3 +1007,89 @@ Returns issued books report data.
 ### GET /api/library/reports/fines
 
 Returns fine collection report data.
+
+## Communication
+
+### GET /api/communication/announcements
+
+Lists workspace announcements.
+
+### POST /api/communication/announcements
+
+Creates an announcement.
+
+### PATCH /api/communication/announcements/:id
+
+Updates an announcement.
+
+### DELETE /api/communication/announcements/:id
+
+Deletes an announcement.
+
+### GET /api/communication/templates
+
+Lists message templates.
+
+### POST /api/communication/templates
+
+Creates a message template.
+
+### PATCH /api/communication/templates/:id
+
+Updates a message template.
+
+### DELETE /api/communication/templates/:id
+
+Deletes a message template.
+
+### GET /api/communication/groups
+
+Lists communication groups.
+
+### POST /api/communication/groups
+
+Creates a communication group.
+
+### PATCH /api/communication/groups/:id
+
+Updates a communication group.
+
+### DELETE /api/communication/groups/:id
+
+Deletes a communication group.
+
+### GET /api/communication/notifications
+
+Lists in-app notifications for the authenticated user.
+
+### PATCH /api/communication/notifications/:id/read
+
+Marks a notification read.
+
+### PATCH /api/communication/notifications/read-all
+
+Marks all notifications read.
+
+### DELETE /api/communication/notifications/:id
+
+Deletes a notification.
+
+### POST /api/communication/send
+
+Queues and sends a message to the workspace audience.
+
+### POST /api/communication/schedule
+
+Schedules a message.
+
+### GET /api/communication/history
+
+Lists message delivery history.
+
+### GET /api/communication/providers
+
+Lists communication provider settings.
+
+### PUT /api/communication/providers
+
+Creates or updates provider settings.
