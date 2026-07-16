@@ -13,7 +13,7 @@ class ApiClient {
 
   private async request<T>(path: string, init: RequestInit = {}): Promise<T> {
     const response = await fetch(path, { credentials: 'include', ...init });
-    if (!response.ok) throw new Error('Request failed');
+    if (!response || !response.ok) throw new Error('Request failed');
     return response.json() as Promise<T>;
   }
 

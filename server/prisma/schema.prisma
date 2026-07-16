@@ -1468,6 +1468,97 @@ model WebsiteAnalytics {
   website        Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 }
 
+model ReportTemplate {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  module         String
+  definition     String
+  createdBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, module])
+}
+
+model SavedReport {
+  id             String   @id @default(cuid())
+  organizationId String
+  templateId     String?
+  name           String
+  module         String
+  parameters     String?
+  resultData     String?
+  createdBy      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, module])
+}
+
+model ReportSchedule {
+  id             String   @id @default(cuid())
+  organizationId String
+  reportName     String
+  module         String
+  frequency      String
+  cron           String?
+  recipients     String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, module])
+}
+
+model DashboardWidget {
+  id             String   @id @default(cuid())
+  organizationId String
+  widgetKey      String
+  title          String
+  config         String?
+  sortOrder      Int      @default(0)
+  isVisible      Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, widgetKey])
+}
+
+model DashboardLayout {
+  id             String   @id @default(cuid())
+  organizationId String
+  name           String
+  layoutConfig   String?
+  isDefault      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, isDefault])
+}
+
+model ReportExport {
+  id             String   @id @default(cuid())
+  organizationId String
+  requestedBy    String?
+  reportType     String
+  format         String
+  status         String   @default("PENDING")
+  filePath       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, reportType])
+}
+
+model AnalyticsEvent {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String?
+  eventType      String
+  entityType     String?
+  entityId       String?
+  metadata       String?
+  occurredAt     DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  @@index([organizationId, eventType])
+}
+
 model EmployeeAttendance {
   id            String   @id @default(cuid())
   employeeId     String

@@ -103,6 +103,7 @@ import { CommunicationScheduledPage } from './pages/communication/CommunicationS
 import { CommunicationHistoryPage } from './pages/communication/CommunicationHistoryPage';
 import { CommunicationProvidersPage } from './pages/communication/CommunicationProvidersPage';
 import { CmsShellPage, PublicPage } from './pages/cms/CmsPages';
+import { AnalyticsDashboardPage, AnalyticsStudentsPage, AnalyticsAttendancePage, AnalyticsFinancePage, AnalyticsAcademicPage, AnalyticsHrPage, AnalyticsInventoryPage, AnalyticsLibraryPage, AnalyticsCustomReportsPage, AnalyticsScheduledPage, AnalyticsExportsPage } from './pages/analytics/AnalyticsPages';
 import { PortalLayout } from './layouts/PortalLayout';
 import { ParentPortalHomePage, ParentPortalDashboardPage, ParentPortalAttendancePage, ParentPortalFeesPage, ParentPortalResultsPage, ParentPortalCertificatesPage } from './pages/portal/ParentPortalPages';
 import { StudentPortalHomePage, StudentPortalDashboardPage, StudentPortalProfilePage, StudentPortalAttendancePage, StudentPortalResultsPage, StudentPortalFeesPage, StudentPortalLibraryPage, StudentPortalCertificatesPage } from './pages/portal/StudentPortalPages';
@@ -288,6 +289,18 @@ function App() {
           <Route path="/cms/settings" element={<ProtectedRoute><CmsShellPage title="Settings" endpoint="/api/cms/websites" /></ProtectedRoute>} />
           <Route path="/cms/themes" element={<ProtectedRoute><CmsShellPage title="Themes" endpoint="/api/cms/websites" /></ProtectedRoute>} />
           <Route path="/cms/seo" element={<ProtectedRoute><CmsShellPage title="SEO" endpoint="/api/cms/websites" /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
+          <Route path="/analytics/dashboard" element={<ProtectedRoute><AnalyticsDashboardPage /></ProtectedRoute>} />
+          <Route path="/analytics/students" element={<ProtectedRoute><AnalyticsStudentsPage /></ProtectedRoute>} />
+          <Route path="/analytics/attendance" element={<ProtectedRoute><AnalyticsAttendancePage /></ProtectedRoute>} />
+          <Route path="/analytics/finance" element={<ProtectedRoute><AnalyticsFinancePage /></ProtectedRoute>} />
+          <Route path="/analytics/academic" element={<ProtectedRoute><AnalyticsAcademicPage /></ProtectedRoute>} />
+          <Route path="/analytics/hr" element={<ProtectedRoute><AnalyticsHrPage /></ProtectedRoute>} />
+          <Route path="/analytics/inventory" element={<ProtectedRoute><AnalyticsInventoryPage /></ProtectedRoute>} />
+          <Route path="/analytics/library" element={<ProtectedRoute><AnalyticsLibraryPage /></ProtectedRoute>} />
+          <Route path="/analytics/custom-reports" element={<ProtectedRoute><AnalyticsCustomReportsPage /></ProtectedRoute>} />
+          <Route path="/analytics/scheduled" element={<ProtectedRoute><AnalyticsScheduledPage /></ProtectedRoute>} />
+          <Route path="/analytics/exports" element={<ProtectedRoute><AnalyticsExportsPage /></ProtectedRoute>} />
           <Route path="/portal/parent" element={<ProtectedRoute roles={['PARENT', 'ADMIN']}><PortalLayout title="Parent Portal" subtitle="Follow your children's attendance, fees, results, and certificates." /></ProtectedRoute>}>
           <Route index element={<ParentPortalHomePage />} />
           <Route path="dashboard" element={<ParentPortalDashboardPage />} />

@@ -1192,4 +1192,42 @@ describe('Authentication and users API', () => {
     expect(isolation.status).toBe(200);
     expect(isolation.body.websites).toHaveLength(1);
   });
+
+  it('returns analytics dashboard and report summaries with organization isolation', async () => {
+    const owner = await prisma.user.create({
+      data: {
+        name: 'Analytics Owner',
+        email: 'analytics-owner@example.com',
+        passwordHash: await hashPassword('SecurePass123!'),
+        role: 'USER',
+        status: 'ACTIVE',
+        emailVerified: true,
+        settings: { create: {} },
+      },
+    });
+    const organization = await prisma.organization.create({ data: { name: 'Analytics Workspace', ownerId: owner.id, members: { create: { userId: owner.id, role: 'OWNER' } } } });
+    const madrassa = await prisma.madrassa.create({ data: { organizationId: organization.id, name: 'Analytics Madrassa' } });
+    await prisma.student.create({ data: { madrassaId: madrassa.id, registrationNumber: `STU-ANA-${Date.now()}`, fullName: 'Analytics Student', status: 'ACTIVE' } });
+    await prisma.employee.create({ data: { organizationId: organization.id, employeeNumber: `EMP-ANA-${Date.now()}`, firstName: 'Analytics', lastName: 'Teacher', employmentType: 'FULL_TIME', joiningDate: new Date('2026-07-01') } });
+    const ownerCookie = `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`;
+
+    const dashboard = await request(app).get('/api/reports/dashboard').set('Cookie', ownerCookie);
+    expect(dashboard.status).toBe(200);
+    expect(dashboard.body.dashboard.students).toBeGreaterThanOrEqual(1);
+
+    const students = await request(app).get('/api/reports/students/overview').set('Cookie', ownerCookie);
+    expect(students.status).toBe(200);
+    expect(students.body.overview.total).toBeGreaterThanOrEqual(1);
+
+    const finance = await request(app).get('/api/reports/finance/summary').set('Cookie', ownerCookie);
+    expect(finance.status).toBe(200);
+    expect(finance.body.summary).toHaveProperty('fees');
+
+    const analyticsExport = await request(app).get('/api/reports/export?type=overview&format=csv').set('Cookie', ownerCookie);
+    expect(analyticsExport.status).toBe(200);
+    expect(analyticsExport.body.export.format).toBe('csv');
+
+    const isolation = await request(app).get('/api/reports/dashboard').set('Cookie', `token=${createToken({ sub: owner.id, role: 'USER', ver: 0 })}`);
+    expect(isolation.status).toBe(200);
+  });
 });

@@ -1217,3 +1217,81 @@ Creates a website page.
 ### GET /api/cms/public/:slug
 
 Returns a published public page.
+
+## Analytics
+
+### GET /api/reports/dashboard
+
+Returns the executive dashboard summary.
+
+### GET /api/reports/students/overview
+
+Returns student overview metrics.
+
+### GET /api/reports/students/admissions
+
+Returns admissions data for trends.
+
+### GET /api/reports/students/distribution
+
+Returns student distribution data.
+
+### GET /api/reports/attendance/summary
+
+Returns attendance summary metrics.
+
+### GET /api/reports/attendance/class
+
+Returns attendance by class.
+
+### GET /api/reports/attendance/students
+
+Returns attendance by student.
+
+### GET /api/reports/finance/summary
+
+Returns finance summary metrics.
+
+### GET /api/reports/finance/fees
+
+Returns fee-related finance data.
+
+### GET /api/reports/finance/expenses
+
+Returns expense data.
+
+### GET /api/reports/finance/donations
+
+Returns donation data.
+
+### GET /api/reports/academic/results
+
+Returns exam result rows.
+
+### GET /api/reports/academic/performance
+
+Returns academic performance summary.
+
+### GET /api/reports/hr/overview
+
+Returns HR overview metrics.
+
+### GET /api/reports/hr/payroll
+
+Returns payroll data.
+
+### GET /api/reports/inventory/assets
+
+Returns asset summary rows.
+
+### GET /api/reports/inventory/stock
+
+Returns stock summary rows.
+
+### GET /api/reports/library/overview
+
+Returns library summary metrics.
+
+### GET /api/reports/export
+
+Creates a report export record.

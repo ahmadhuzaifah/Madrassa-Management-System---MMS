@@ -239,6 +239,7 @@ Secure token record for email verification.
 - `Website` 1:N `WebsiteMenu`, `WebsitePage`, `WebsiteMedia`, `WebsiteSlider`, `WebsiteAnnouncement`, `WebsiteEvent`, `WebsiteGallery`, `WebsiteFaq`, `WebsiteTestimonial`, `WebsiteStaff`, `WebsiteContactMessage`, `WebsiteRedirect`, `WebsiteAnalytics`
 - `WebsitePage` 1:N `WebsiteSection`
 - `WebsiteSection` 1:N `WebsiteBlock`
+- `Organization` 1:N `ReportTemplate`, `SavedReport`, `ReportSchedule`, `DashboardWidget`, `DashboardLayout`, `ReportExport`, `AnalyticsEvent`
 
 ## Indexes and performance
 
@@ -252,6 +253,8 @@ Important indexes in the schema:
 - `@@index([organizationId, status])` on `ParentUser`, `StudentPortalAccount`, and `TeacherPortalAccount`
 - `@@index([organizationId, status])` on `Website`
 - `@@unique([websiteId, slug])` on `WebsitePage`
+- `@@index([organizationId, module])` on report template, saved report, and schedule tables
+- `@@index([organizationId, eventType])` on `AnalyticsEvent`
 
 ## Database setup
 
