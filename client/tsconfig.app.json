@@ -10,6 +10,7 @@
     "allowImportingTsExtensions": false,
     "resolveJsonModule": true,
     "isolatedModules": true,
+    "types": ["node", "vite/client"],
     "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
